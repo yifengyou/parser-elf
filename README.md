@@ -1,6 +1,6 @@
-# ELF-Parser
+# ELF-Parser(Executable and Linkable Format)
 
->ELF(Executable and Linkable Format)
+>ELF简介
 
 在计算机科学中，是一种用于二进制文件、可执行文件、目标代码、共享库和核心转储格式文件。是UNIX系统实验室（USL）作为应用程序二进制接口（Application Binary Interface，ABI）而开发和发布的，也是Linux的主要可执行文件格式。<br />
 1999年，被86open项目选为x86架构上的类Unix操作系统的二进制文件标准格式，用来取代COFF。因其可扩展性与灵活性，也可应用在其它处理器、计算机系统架构的操作系统上。
