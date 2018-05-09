@@ -1,4 +1,4 @@
-# elf-Parser
+# ELF-Parser
 
 >ELF(Executable and Linkable Format)
 
