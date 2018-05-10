@@ -1,11 +1,9 @@
-<!-- TOC depthFrom:1 depthTo:2 withLinks:1 updateOnSave:1 orderedList:0 -->
+<!-- TOC depthFrom:1 depthTo:1 withLinks:1 updateOnSave:1 orderedList:0 -->
 
 - [ELF简介](#elf简介)
 - [ELF格式文件分类](#elf格式文件分类)
 - [ELF文件格式](#elf文件格式)
-	- [ELF header](#elf-header)
 - [define EI_NIDENT (16)](#define-einident-16)
-	- [ELF Section heafer table](#elf-section-heafer-table)
 
 <!-- /TOC -->
 
@@ -52,8 +50,8 @@ ELF文件由4部分组成，分别是ELF头（ELF header）、程序头表（Pro
 
 ![elfheader32](https://github.com/yifengyou/ELF-Parser/blob/master/image/elfheader32.png)
 
-```
-/* The ELF file header.  This appears at the start of every ELF file.  */
+~~~
+//The ELF file header.  This appears at the start of every ELF file.
 
 #define EI_NIDENT (16)
 
@@ -92,9 +90,11 @@ typedef struct
   Elf64_Half	e_shnum;		/* Section header table entry count */
   Elf64_Half	e_shstrndx;		/* Section header string table index */
 } Elf64_Ehdr;
-```
+~~~
+
 
 ## ELF Section heafer table
+
 ```
 /* Section header.  */
 typedef struct
