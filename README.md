@@ -29,7 +29,7 @@ Java层的Android开发是如此不安全，越来越多的公司把重要的东
 
 ELF文件格式提供了两种视图，分别是链接视图和执行视图。
 
-![elfstructure](image\elfstructure.png)
+![elfstructure](https://github.com/yifengyou/ELF-Parser/blob/master/image/elfstructure.png)
 
 ELF文件由4部分组成，分别是ELF头（ELF header）、程序头表（Program header table）、节（Section）和节头表（Section header table）。实际上，一个文件中不一定包含全部内容，而且他们的位置也未必如同所示这样安排，只有ELF头的位置是固定的，其余各部分的位置、大小等信息由ELF头中的各项值来决定。
 
@@ -41,7 +41,7 @@ ELF文件由4部分组成，分别是ELF头（ELF header）、程序头表（Pro
 - sections 或者 segments：segments是从运行的角度来描述elf文件，sections是从链接的角度来描述elf文件，也就是说，在链接阶段，我们可以忽略program header table来处理此文件，在运行阶段可以忽略section header table来处理此程序（所以很多加固手段删除了section header table）。从图中我们也可以看出，segments与sections是包含的关系，一个segment包含若干个section。
 - Section Header Table: 包含了文件各个segction的属性信息，我们都将结合例子来解释。
 
-![elflinkexe](image\elflinkexe.png)
+![elflinkexe](https://github.com/yifengyou/ELF-Parser/blob/master/image/elflinkexe.png)
 
 - 程序头部表（Program Header Table），如果存在的话，告诉系统如何创建进程映像。
 - 节区头部表（Section Header Table）包含了描述文件节区的信息，比如大小、偏移等。
@@ -50,7 +50,7 @@ ELF文件由4部分组成，分别是ELF头（ELF header）、程序头表（Pro
 
 32位ELF文件中常用的数据格式:
 
-![elfheader32](image\elfheader32.png)
+![elfheader32](https://github.com/yifengyou/ELF-Parser/blob/master/image/elfheader32.png)
 
 ```
 /* The ELF file header.  This appears at the start of every ELF file.  */
