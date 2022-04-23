@@ -42,40 +42,38 @@ ELF 文件格式规范由**TIS(Tool Interface Standards – 工具接口标准)*
 
 ## 目录
 
-* [elf简介](docs/elf简介/elf简介.md)
-* [elf静态结构](docs/elf静态结构/elf静态结构.md)
-* [elf装载](docs/elf装载/elf装载.md)
-* [elf动态连接](docs/elf动态连接/elf动态连接.md)
+* [ELF基础](docs/ELF基础.md)
+  * [elf简介](docs/基础/elf简介/elf简介.md)
+  * [elf静态结构](docs/基础/elf静态结构/elf静态结构.md)
+  * [elf装载](docs/基础/elf装载/elf装载.md)
+  * [elf动态连接](docs/基础/elf动态连接/elf动态连接.md)
+  * [elf动态连接](docs/基础/elf动态连接/elf动态连接.md)
+  * [常见名词](docs/基础/常见名词.md)
+* [基于GoLang的ELF解析](docs/基于GoLang的ELF解析.md)
 
 
 
-## 常见名词对照
 
-| 常见名词         | 全拼                    |
-| ---------------- | ----------------------- |
-| 可执行可连接格式 | ELF                     |
-| ELF 文件头       | ELF header              |
-| 基地址           | base address            |
-| 动态连接器       | dynamic linker          |
-| 动态连接         | dynamic linking         |
-| 全局偏移量表     | global offset table     |
-| 哈希表           | hash table              |
-| 初始化函数       | initialization function |
-| 连接编辑器       | link editor             |
-| 目标文件         | object file             |
-| 函数连接表       | procedure linkage table |
-| 程序头           | program header          |
-| 程序头表         | program header table    |
-| 程序解析器       | program interpreter     |
-| 重定位           | relocation              |
-| 共享目标         | shared object           |
-| 节               | section                 |
-| 节头             | section header          |
-| 节头表           | section header table    |
-| 段               | segment                 |
-| 字符串表         | string table            |
-| 符号表           | symbol table            |
-| 终止函数         | termination function    |
+## 图示
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
