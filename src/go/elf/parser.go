@@ -49,6 +49,7 @@ func (p *Parser) Parse() error {
 		return err
 	}
 	elfClass := p.F.Ident.Class
+	// 根据class（ELF32/ELF64）使用不同的头解析方法
 	err = p.ParseELFHeader(elfClass)
 	if err != nil {
 		return err
@@ -72,6 +73,29 @@ func (p *Parser) Parse() error {
 	return nil
 }
 
+
+/*
+ELF Header:
+  Magic:   7f 45 4c 46 02 01 01 00 00 00 00 00 00 00 00 00
+  Class:                             ELF64
+  Data:                              2's complement, little endian
+  Version:                           1 (current)
+  OS/ABI:                            UNIX - System V
+  ABI Version:                       0
+  Type:                              DYN (Shared object file)
+  Machine:                           Advanced Micro Devices X86-64
+  Version:                           0x1
+  Entry point address:               0x5e50
+  Start of program headers:          64 (bytes into file)
+  Start of section headers:          141416 (bytes into file)
+  Flags:                             0x0
+  Size of this header:               64 (bytes)
+  Size of program headers:           56 (bytes)
+  Number of program headers:         11
+  Size of section headers:           64 (bytes)
+  Number of section headers:         31
+  Section header string table index: 30
+*/
 // ParseIdent will parse the identification bytes at the start of the ELF File.
 func (p *Parser) ParseIdent() error {
 
@@ -103,6 +127,7 @@ func (p *Parser) ParseIdent() error {
 
 	p.F.Ident.Class = Class(ident[EI_CLASS])
 	p.F.Ident.Data = Data(ident[EI_DATA])
+	// 独立开辟一个BtyeOrder用于标记大小端
 	p.F.Ident.ByteOrder = ByteOrder(Data(ident[EI_DATA]))
 	p.F.Ident.Version = Version(ident[EI_VERSION])
 	p.F.Ident.OSABI = OSABI(ident[EI_OSABI])

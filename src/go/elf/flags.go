@@ -19,7 +19,7 @@ const (
 )
 
 // Magic represents the 4 starting bytes representing file defining values.
-type Magic [4]byte
+type Magic [16]byte
 
 const (
 	// ELFMAG is the constant prelude to every ELF binary.
@@ -116,7 +116,7 @@ const (
 )
 
 var osABIStrings = []flagName{
-	{0, "ELFOSABI_NONE"},
+	{0, "UNIX - System V(ELFOSABI_NONE)"},
 	{1, "ELFOSABI_HPUX"},
 	{2, "ELFOSABI_NETBSD"},
 	{3, "ELFOSABI_LINUX"},
@@ -168,7 +168,7 @@ var typeStrings = []flagName{
 	{0, "ET_NONE"},
 	{1, "ET_REL"},
 	{2, "ET_EXEC"},
-	{3, "ET_DYN"},
+	{3, "DYN (Shared object file) (ET_DYN)"},
 	{4, "ET_CORE"},
 	{0xfe00, "ET_LOOS"},
 	{0xfeff, "ET_HIOS"},
@@ -415,7 +415,7 @@ var machineStrings = []flagName{
 	{59, "EM_ME16"},
 	{60, "EM_ST100"},
 	{61, "EM_TINYJ"},
-	{62, "EM_X86_64"},
+	{62, "Advanced Micro Devices X86-64(EM_X86_64) [3e 00]"},
 	{63, "EM_PDSP"},
 	{64, "EM_PDP10"},
 	{65, "EM_PDP11"},

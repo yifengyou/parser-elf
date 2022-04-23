@@ -1,13 +1,13 @@
 package main
 
 import (
-	"fmt"
+	"os"
 	"parser-elf/elf"
 )
 
 func main() {
-
-	p, err := elf.New("/bin/ls")
+	// 实现ELF解析，类似readelf -a读取的结果
+	p, err := elf.New("ls")
 	defer p.CloseFile()
 	if err != nil {
 		panic(err)
@@ -16,9 +16,16 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	jsonFile, err := p.DumpJSON()
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println(jsonFile)
+
+	// ELF Header
+	p.DumpHeaderIndent()
+	p.DumpHeaderWithoutIndent()
+
+
+	os.Exit(0)
+	//jsonFile, err := p.DumpJSON()
+	//if err != nil {
+	//	panic(err)
+	//}
+	//fmt.Println(jsonFile)
 }

@@ -149,6 +149,30 @@ func IsValidELFClass(c Class) bool {
 	}
 }
 
+// IsValidELFClass validates the ELF class of the binary.
+func ClassToString(c Class) string {
+	switch c {
+	case ELFCLASS32:
+		return "ELF32"
+	case ELFCLASS64:
+		return "ELF64"
+	default:
+		return "Not Supported"
+	}
+}
+
+// IsValidByteOrder validates the ELF byte order field.
+func ByteOrderToString(b Data) string {
+	switch b {
+	case ELFDATA2LSB:
+		return "2's complement, little endian"
+	case ELFDATA2MSB:
+		return "2's complement, big endian"
+	default:
+		return "Not Supported"
+	}
+}
+
 // IsValidByteOrder validates the ELF byte order field.
 func IsValidByteOrder(b Data) bool {
 	switch b {
@@ -164,6 +188,15 @@ func IsValidByteOrder(b Data) bool {
 // IsValidVersion validates against the current default version flag EV_CURRENT.
 func IsValidVersion(b Version) bool {
 	return b == EV_CURRENT
+}
+
+func VersionToString(b Version) string {
+	switch b {
+	case EV_CURRENT:
+		return "1 (current)"
+	default:
+		return "unknown version"
+	}
 }
 
 // goByteOrder encodes a Data field to a native Go byte order field.
