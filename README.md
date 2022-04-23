@@ -1,14 +1,16 @@
 # elf解析
 
-## 本仓库内容
-
-1. elf解析笔记
-
 ```
 Something I hope you know before go into the coding~
 First, please watch or star this repo, I'll be more happy if you follow me.
 Bug report, questions and discussion are welcome, you can post an issue or pull a request.
 ```
+
+## 本仓库内容
+
+1. elf结构
+2. go elf解析
+
 
 ## 相关站点
 
@@ -45,44 +47,36 @@ ELF 文件格式规范由**TIS(Tool Interface Standards – 工具接口标准)*
 * [elf装载](docs/elf装载/elf装载.md)
 * [elf动态连接](docs/elf动态连接/elf动态连接.md)
 
-## 思维导图
-
-## 参考教程
-
-
-## 参考博客
 
 
 ## 常见名词对照
 
-|常见名词| 全拼 |
-|---|---|
-|可执行可连接格式|  ELF|
-|ELF 文件头 | ELF header|
-|基地址 | base address|
-|动态连接器 | dynamic linker|
-|动态连接 | dynamic linking|
-|全局偏移量表 | global offset table|
-|哈希表 | hash table|
-|初始化函数 | initialization function|
-|连接编辑器 | link editor|
-|目标文件 | object file|
-|函数连接表 | procedure linkage table|
-|程序头 | program header|
-|程序头表 | program header table|
-|程序解析器 | program interpreter|
-|重定位 | relocation|
-|共享目标 | shared object|
-|节 | section|
-|节头 | section header|
-|节头表 | section header table|
-|段|segment|
-|字符串表| string table|
-|符号表| symbol table|
-|终止函数|termination function|
+| 常见名词         | 全拼                    |
+| ---------------- | ----------------------- |
+| 可执行可连接格式 | ELF                     |
+| ELF 文件头       | ELF header              |
+| 基地址           | base address            |
+| 动态连接器       | dynamic linker          |
+| 动态连接         | dynamic linking         |
+| 全局偏移量表     | global offset table     |
+| 哈希表           | hash table              |
+| 初始化函数       | initialization function |
+| 连接编辑器       | link editor             |
+| 目标文件         | object file             |
+| 函数连接表       | procedure linkage table |
+| 程序头           | program header          |
+| 程序头表         | program header table    |
+| 程序解析器       | program interpreter     |
+| 重定位           | relocation              |
+| 共享目标         | shared object           |
+| 节               | section                 |
+| 节头             | section header          |
+| 节头表           | section header table    |
+| 段               | segment                 |
+| 字符串表         | string table            |
+| 符号表           | symbol table            |
+| 终止函数         | termination function    |
 
 
-## 总结
 
-```
-```
+---
