@@ -58,7 +58,7 @@ func TestParser(t *testing.T) {
 			{
 				path: path.Join("test/", "ls"),
 				expectedIdent: FileIdent{
-					Magic:      [4]byte{0x7f, 'E', 'L', 'F'},
+					Magic:      [16]byte{0x7f, 'E', 'L', 'F'},
 					Class:      ELFCLASS64,
 					Data:       ELFDATA2LSB,
 					Version:    EV_CURRENT,
@@ -112,7 +112,7 @@ func TestParser(t *testing.T) {
 			{
 				path: path.Join("test/", "ls"),
 				expectedIdent: FileIdent{
-					Magic:      [4]byte{0x7f, 'E', 'L', 'F'},
+					Magic:      [16]byte{0x7f, 'E', 'L', 'F'},
 					Class:      ELFCLASS64,
 					Data:       ELFDATA2LSB,
 					Version:    EV_CURRENT,
@@ -505,7 +505,7 @@ func TestParser(t *testing.T) {
 			{
 				path: path.Join("test/", "ls"),
 				expectedIdent: FileIdent{
-					Magic:      [4]byte{0x7f, 'E', 'L', 'F'},
+					Magic:      [16]byte{0x7f, 'E', 'L', 'F'},
 					Class:      ELFCLASS64,
 					Data:       ELFDATA2LSB,
 					Version:    EV_CURRENT,
@@ -935,7 +935,7 @@ func TestParser(t *testing.T) {
 			{
 				path: path.Join("test/", "ls"),
 				expectedIdent: FileIdent{
-					Magic:      [4]byte{0x7f, 'E', 'L', 'F'},
+					Magic:      [16]byte{0x7f, 'E', 'L', 'F'},
 					Class:      ELFCLASS64,
 					Data:       ELFDATA2LSB,
 					Version:    EV_CURRENT,
@@ -1120,7 +1120,7 @@ func TestParser(t *testing.T) {
 			{
 				path: path.Join("test/", "ls"),
 				expectedIdent: FileIdent{
-					Magic:      [4]byte{0x7f, 'E', 'L', 'F'},
+					Magic:      [16]byte{0x7f, 'E', 'L', 'F'},
 					Class:      ELFCLASS64,
 					Data:       ELFDATA2LSB,
 					Version:    EV_CURRENT,

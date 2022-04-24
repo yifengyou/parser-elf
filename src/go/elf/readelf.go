@@ -511,7 +511,6 @@ Symbol table '.dynsym' contains 135 entries:
 */
 func (p *Parser) DumpSymbolTable() {
 	PrintSeparator()
-	fmt.Println("Symbol table '.dynsym' contains 135 entries:")
 	switch p.F.Ident.Class {
 	case ELFCLASS32:
 		for _, ph := range p.F.ProgramHeaders32 {
@@ -519,23 +518,34 @@ func (p *Parser) DumpSymbolTable() {
 				ProgType(ph.Type).String(), ph.Off, ph.Vaddr, ph.Paddr, ph.Filesz, ph.Memsz, ProgFlag(ph.Flags).String(), ph.Align)
 		}
 	case ELFCLASS64:
-		fmt.Println("   Num:    Value           Size Type    Bind   Vis      Ndx Name")
+		fmt.Printf("Symbol table '.dynsym' contains %d entries:\n", len(p.F.Symbols64))
+		fmt.Println("   Num:    Value           Size        Type          Bind           Vis            Ndx            Name")
 		for index, sym := range p.F.Symbols64 {
-			fmt.Printf("%6d:    %.14x  %-4d %-7s %-6s %-9s %s\n",
-				index,
-				sym.Value,
-				sym.Size,
-				SymType(ST_TYPE(sym.Info)).ShortString(),
-				SymBind(ST_BIND(sym.Info)).ShortString(),
-				ST_VISIBILITY(sym.Info).ShortString(),
-				SectionIndex(sym.Shndx).ShortString(),
-			)
+			if p.F.NamedSymbols[index].Version != "" {
+				fmt.Printf("%6d:    %.14x  %-11d %-13s %-14s %-14s %-14s %s@%s %s\n",
+					index,
+					sym.Value,
+					sym.Size,
+					SymType(ST_TYPE(sym.Info)).ShortString(),
+					SymBind(ST_BIND(sym.Info)).ShortString(),
+					ST_VISIBILITY(sym.Info).ShortString(),
+					SectionIndex(sym.Shndx).ShortString(),
+					p.F.NamedSymbols[index].Name,
+					p.F.NamedSymbols[index].Version,
+					p.F.NamedSymbols[index].Library,
+				)
+			} else {
+				fmt.Printf("%6d:    %.14x  %-11d %-13s %-14s %-14s %-14s %s\n",
+					index,
+					sym.Value,
+					sym.Size,
+					SymType(ST_TYPE(sym.Info)).ShortString(),
+					SymBind(ST_BIND(sym.Info)).ShortString(),
+					ST_VISIBILITY(sym.Info).ShortString(),
+					SectionIndex(sym.Shndx).ShortString(),
+					p.F.NamedSymbols[index].Name,
+				)
+			}
 		}
-
-		PrintSeparator()
-		fmt.Printf("len: %d\n", len(p.F.Symbols64))
-		//for _, sym := range p.F.Symbols64 {
-		//
-		//}
 	}
 }

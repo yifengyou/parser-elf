@@ -121,7 +121,7 @@ const (
 )
 
 var osABIStrings = []flagName{
-	{0, "UNIX - System V(ELFOSABI_NONE) [0x00]"},
+	{0, "UNIX - System V(ELFOSABI_NONE)[0x00]"},
 	{1, "ELFOSABI_HPUX"},
 	{2, "ELFOSABI_NETBSD"},
 	{3, "ELFOSABI_LINUX"},
@@ -173,7 +173,7 @@ var typeStrings = []flagName{
 	{0, "ET_NONE"},
 	{1, "ET_REL"},
 	{2, "ET_EXEC"},
-	{3, "DYN (Shared object file) (ET_DYN) [0x0003]"},
+	{3, "DYN (Shared object file) (ET_DYN)[0x0003]"},
 	{4, "ET_CORE"},
 	{0xfe00, "ET_LOOS"},
 	{0xfeff, "ET_HIOS"},
@@ -587,7 +587,7 @@ const (
 )
 
 var sectionIndexStrings = []flagName{
-	{0, "SHN_UNDEF"},
+	{0, "SHN_UNDEF[0x0000]"},
 	{0xff00, "SHN_LOPROC"},
 	{0xff20, "SHN_LOOS"},
 	{0xfff1, "SHN_ABS"},
@@ -1112,9 +1112,9 @@ const (
 )
 
 var stbStrings = []flagName{
-	{0, "STB_LOCAL"},
-	{1, "STB_GLOBAL"},
-	{2, "STB_WEAK"},
+	{0, "STB_LOCAL[0x0]"},
+	{1, "STB_GLOBAL[0x1]"},
+	{2, "STB_WEAK[0x2]"},
 	{10, "STB_LOOS"},
 	{12, "STB_HIOS"},
 	{13, "STB_LOPROC"},
@@ -1145,17 +1145,17 @@ const (
 )
 
 var sttStrings = []flagName{
-	{0, "STT_NOTYPE"},
-	{1, "STT_OBJECT"},
-	{2, "STT_FUNC"},
-	{3, "STT_SECTION"},
-	{4, "STT_FILE"},
-	{5, "STT_COMMON"},
-	{6, "STT_TLS"},
-	{10, "STT_LOOS"},
-	{12, "STT_HIOS"},
-	{13, "STT_LOPROC"},
-	{15, "STT_HIPROC"},
+	{0, "STT_NOTYPE[0x0]"},
+	{1, "STT_OBJECT[0x1]"},
+	{2, "STT_FUNC[0x2]"},
+	{3, "STT_SECTION[0x3]"},
+	{4, "STT_FILE[0x4]"},
+	{5, "STT_COMMON[0x5]"},
+	{6, "STT_TLS[0x6]"},
+	{10, "STT_LOOS[0xa]"},
+	{12, "STT_HIOS[0xc]"},
+	{13, "STT_LOPROC[0xd]"},
+	{15, "STT_HIPROC[0xf]"},
 }
 
 func (i SymType) String() string   { return stringify(uint32(i), sttStrings, false) }
@@ -1175,10 +1175,10 @@ const (
 )
 
 var stvStrings = []flagName{
-	{0x0, "STV_DEFAULT"},
-	{0x1, "STV_INTERNAL"},
-	{0x2, "STV_HIDDEN"},
-	{0x3, "STV_PROTECTED"},
+	{0x0, "STV_DEFAULT[0x0]"},
+	{0x1, "STV_INTERNAL[0x1]"},
+	{0x2, "STV_HIDDEN[0x2]"},
+	{0x3, "STV_PROTECTED[0x3]"},
 }
 
 func (i SymVis) String() string   { return stringify(uint32(i), stvStrings, false) }

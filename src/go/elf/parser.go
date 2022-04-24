@@ -73,7 +73,6 @@ func (p *Parser) Parse() error {
 	return nil
 }
 
-
 /*
 ELF Header:
   Magic:   7f 45 4c 46 02 01 01 00 00 00 00 00 00 00 00 00
@@ -257,9 +256,9 @@ func (p *Parser) parseELFSectionHeader64() error {
 	if p.F.Header64.Shnum == 0 || p.F.Header64.Shoff == 0 {
 		return errors.New("ELF file doesn't contain any section header table")
 	}
-	shnum := p.F.Header64.SectionHeadersNum() // 节数量
+	shnum := p.F.Header64.SectionHeadersNum()    // 节数量
 	shoff := p.F.Header64.SectionHeadersOffset() // 节偏移
-	shentz := p.F.Header64.Shentsize // 头节大小
+	shentz := p.F.Header64.Shentsize             // 头节大小
 
 	names := make([]uint32, shnum)
 	sectionHeaders := make([]ELF64SectionHeader, shnum)
@@ -528,9 +527,9 @@ func (p *Parser) getSymbols64(typ SectionType) ([]Symbol, []byte, error) {
 	if err != nil {
 		return nil, nil, errors.New("cannot load string table section")
 	}
-	// The first entry is all zeros.
-	var skip [Sym64Size]byte
-	symtab.Read(skip[:])
+	// The first entry is all zeros. 原程序选择跳过，修改不跳过，与readelf保持一致
+	//var skip [Sym64Size]byte
+	//symtab.Read(skip[:])
 	symbols := make([]ELF64SymbolTableEntry, symtab.Len()/Sym64Size)
 	namedSymbols := make([]Symbol, symtab.Len()/Sym64Size)
 	i := 0
@@ -561,7 +560,8 @@ func (p *Parser) getSymbols64(typ SectionType) ([]Symbol, []byte, error) {
 	err = p.ParseGNUVersionTable(strdata)
 	if err == nil {
 		for i := range namedSymbols {
-			namedSymbols[i].Library, namedSymbols[i].Version = p.gnuVersion(i)
+			// p.gnuVersion(i-1) 与上述跳过第一条目保持一致
+			namedSymbols[i].Library, namedSymbols[i].Version = p.gnuVersion(i-1)
 		}
 	}
 	p.F.Symbols64 = symbols
