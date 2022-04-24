@@ -25,6 +25,7 @@ func main() {
 	// 各类section挨个安排
 	p.DumpDynamicSection()
 	p.DumpSymbolTable()
+	p.DumpRelocationsSection()
 
 	os.Exit(0)
 	//jsonFile, err := p.DumpJSON()
