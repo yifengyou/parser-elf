@@ -112,8 +112,9 @@ func (p *Parser) ParseIdent() error {
 	if n != 16 || string(ident[:4]) != ELFMAG {
 		return errors.New("bad magic number " + string(ident[:4]) + " expected : " + ELFMAG)
 	}
-
-	copy(p.F.Ident.Magic[:], ident[:4])
+	// 因为readelf -h中的magic是给出了前16个字节
+	// 实际magic只需要4个字节。选择与readelf一致，对读几个字节，不影响后续解析
+	copy(p.F.Ident.Magic[:], ident[:EI_NIDENT])
 
 	if !IsValidELFClass(Class(ident[EI_CLASS])) {
 		return errors.New("invalid ELF class")
@@ -248,15 +249,17 @@ func (p *Parser) parseELFSectionHeader32() error {
 
 // parseELFSectionHeader64 parses specifically the raw elf section header of 64-bit binaries.
 func (p *Parser) parseELFSectionHeader64() error {
+	// 判断ELF64头信息是否解析
 	if p.F.Header64 == NewELF64Header() {
 		return errors.New("header need to be parsed first")
 	}
+	// 如果节数量和节偏移都是0，说明节信息不存在
 	if p.F.Header64.Shnum == 0 || p.F.Header64.Shoff == 0 {
 		return errors.New("ELF file doesn't contain any section header table")
 	}
-	shnum := p.F.Header64.SectionHeadersNum()
-	shoff := p.F.Header64.SectionHeadersOffset()
-	shentz := p.F.Header64.Shentsize
+	shnum := p.F.Header64.SectionHeadersNum() // 节数量
+	shoff := p.F.Header64.SectionHeadersOffset() // 节偏移
+	shentz := p.F.Header64.Shentsize // 头节大小
 
 	names := make([]uint32, shnum)
 	sectionHeaders := make([]ELF64SectionHeader, shnum)

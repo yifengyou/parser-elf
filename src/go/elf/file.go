@@ -153,9 +153,9 @@ func IsValidELFClass(c Class) bool {
 func ClassToString(c Class) string {
 	switch c {
 	case ELFCLASS32:
-		return "ELF32"
+		return "ELF32 [0x01]"
 	case ELFCLASS64:
-		return "ELF64"
+		return "ELF64 [0x02]"
 	default:
 		return "Not Supported"
 	}
@@ -165,9 +165,9 @@ func ClassToString(c Class) string {
 func ByteOrderToString(b Data) string {
 	switch b {
 	case ELFDATA2LSB:
-		return "2's complement, little endian"
+		return "2's complement, little endian [0x01]"
 	case ELFDATA2MSB:
-		return "2's complement, big endian"
+		return "2's complement, big endian [0x02]"
 	default:
 		return "Not Supported"
 	}
@@ -193,7 +193,7 @@ func IsValidVersion(b Version) bool {
 func VersionToString(b Version) string {
 	switch b {
 	case EV_CURRENT:
-		return "1 (current)"
+		return "1 (current) [0x01]"
 	default:
 		return "unknown version"
 	}

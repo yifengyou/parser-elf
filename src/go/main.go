@@ -20,7 +20,7 @@ func main() {
 	// ELF Header
 	p.DumpHeaderIndent()
 	p.DumpHeaderWithoutIndent()
-
+	p.DumpSectionHeaders()
 
 	os.Exit(0)
 	//jsonFile, err := p.DumpJSON()
