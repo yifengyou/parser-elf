@@ -21,6 +21,10 @@ func main() {
 	p.DumpHeaderIndent()
 	p.DumpHeaderWithoutIndent()
 	p.DumpSectionHeaders()
+	p.DumpProgramHeaders()
+	// 各类section挨个安排
+	p.DumpDynamicSection()
+	p.DumpSymbolTable()
 
 	os.Exit(0)
 	//jsonFile, err := p.DumpJSON()

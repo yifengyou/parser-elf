@@ -3,6 +3,11 @@
 // https://refspecs.linuxbase.org/elf/elf.pdf
 package elf
 
+import (
+	"fmt"
+	"strings"
+)
+
 // Indexes in Ident array.
 const (
 	EI_MAG0       = 0  // Start of magic bytes 0x7f
@@ -592,6 +597,15 @@ var sectionIndexStrings = []flagName{
 
 func (si SectionIndex) String() string   { return stringify(uint32(si), sectionIndexStrings, false) }
 func (si SectionIndex) GoString() string { return stringify(uint32(si), sectionIndexStrings, true) }
+func (si SectionIndex) ShortString() string {
+	for index, _ := range sectionIndexStrings {
+		if SectionIndex(index) == si {
+			return strings.Replace(stringify(uint32(si), sectionIndexStrings, false), "SHN_", "", -1)
+		}
+	}
+	return fmt.Sprintf("%d", si)
+
+}
 
 // Section type.
 type SectionType uint32
@@ -696,7 +710,9 @@ var sectionFlagStrings = []flagName{
 	{0x800, "SHF_COMPRESSED"},
 }
 
-func (sf SectionFlag) String() string   { return matchFlagName(uint32(sf), sectionFlagStrings, false) }
+func (sf SectionFlag) String() string {
+	return strings.Replace(matchFlagName(uint32(sf), sectionFlagStrings, false), "SHF_", "", -1)
+}
 func (sf SectionFlag) GoString() string { return matchFlagName(uint32(sf), sectionFlagStrings, true) }
 
 // Section compression type.
@@ -806,11 +822,13 @@ var programFlagStrings = []flagName{
 	{0x4, "PF_R"},
 }
 
-func (pf ProgFlag) String() string   { return matchFlagName(uint32(pf), programFlagStrings, false) }
+func (pf ProgFlag) String() string {
+	return strings.Replace(matchFlagName(uint32(pf), programFlagStrings, false), "PF_", "", -1)
+}
 func (pf ProgFlag) GoString() string { return matchFlagName(uint32(pf), programFlagStrings, true) }
 
 // DynTag
-type DynTag int
+type DynTag int64
 
 const (
 	DT_NULL         DynTag = 0  /* Terminating entry. */
@@ -1028,7 +1046,9 @@ var dtStrings = []flagName{
 	{0x7fffffff, "DT_FILTER"},
 }
 
-func (dt DynTag) String() string   { return stringify(uint32(dt), dtStrings, false) }
+func (dt DynTag) String() string {
+	return strings.Replace(stringify(uint32(dt), dtStrings, false), "DT_", "", -1)
+}
 func (dt DynTag) GoString() string { return stringify(uint32(dt), dtStrings, true) }
 
 // DT_FLAGS values.
@@ -1103,6 +1123,9 @@ var stbStrings = []flagName{
 
 func (i SymBind) String() string   { return stringify(uint32(i), stbStrings, false) }
 func (i SymBind) GoString() string { return stringify(uint32(i), stbStrings, true) }
+func (i SymBind) ShortString() string {
+	return strings.Replace(stringify(uint32(i), stbStrings, false), "STB_", "", -1)
+}
 
 /* Symbol type - ELFNN_ST_TYPE - st_info */
 type SymType int
@@ -1137,6 +1160,9 @@ var sttStrings = []flagName{
 
 func (i SymType) String() string   { return stringify(uint32(i), sttStrings, false) }
 func (i SymType) GoString() string { return stringify(uint32(i), sttStrings, true) }
+func (i SymType) ShortString() string {
+	return strings.Replace(stringify(uint32(i), sttStrings, false), "STT_", "", -1)
+}
 
 /* Symbol visibility - ELFNN_ST_VISIBILITY - st_other */
 type SymVis int
@@ -1157,3 +1183,6 @@ var stvStrings = []flagName{
 
 func (i SymVis) String() string   { return stringify(uint32(i), stvStrings, false) }
 func (i SymVis) GoString() string { return stringify(uint32(i), stvStrings, true) }
+func (i SymVis) ShortString() string {
+	return strings.Replace(stringify(uint32(i), stvStrings, false), "STV_", "", -1)
+}

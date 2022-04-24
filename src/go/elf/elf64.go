@@ -70,9 +70,11 @@ type ELF64Section struct {
 	sr *io.SectionReader
 }
 
+
 // ELF64DynamicTableEntry represents the Dynamic structure.
 // The ".dynamic" section contains an array of them.
 type ELF64DynamicTableEntry struct {
 	Tag int64  // Identifies the type of the dynamic table entry.
 	Val uint64 // Represents integer values
 }
+
