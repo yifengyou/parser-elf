@@ -75,7 +75,7 @@ func (p *Parser) Parse() error {
 	if err != nil {
 		return err
 	}
-	// 解析所有符号表，指定为动态符号SHT_DYNSYM
+	// 解析所有符号表，指定为动态符号SHT_DYNSYM，而非SHT_SYMTAB
 	err = p.ParseELFSymbols(elfClass, SHT_DYNSYM)
 	if err != nil {
 		return err
@@ -582,18 +582,24 @@ func (p *Parser) getSymbols32(typ SectionType) ([]Symbol, []byte, error) {
 
 // 解析ELF64 符号表
 func (p *Parser) getSymbols64(typ SectionType) ([]Symbol, []byte, error) {
+	// GetSectionByType是F  *File的方法
+	// 遍历所有节数据描述符，获取匹配符号表的节数据描述符
 	symtabSection := p.F.GetSectionByType(typ)
 	if symtabSection == nil {
 		return nil, nil, ErrNoSymbols
 	}
+	// 获取节数据
 	data, err := symtabSection.Data()
 	if err != nil {
 		return nil, nil, errors.New("cannot load symbol section")
 	}
+	// 使用bytes包对字节数据进行操作
 	symtab := bytes.NewReader(data)
+	// 如果不能被24除尽，则不是标准的大小；没有对齐
 	if symtab.Len()%Sym64Size != 0 {
 		return nil, nil, errors.New("length of symbol section is not a multiple of Sym64Size")
 	}
+	// 获取符号表对应节的字符表
 	strdata, err := p.F.stringTable(symtabSection.Link)
 	if err != nil {
 		return nil, nil, errors.New("cannot load string table section")
@@ -601,7 +607,9 @@ func (p *Parser) getSymbols64(typ SectionType) ([]Symbol, []byte, error) {
 	// The first entry is all zeros. 原程序选择跳过，修改不跳过，与readelf保持一致
 	//var skip [Sym64Size]byte
 	//symtab.Read(skip[:])
+	// 体系结构相关的符号表数组，每项ELF64SymbolTableEntry
 	symbols := make([]ELF64SymbolTableEntry, symtab.Len()/Sym64Size)
+	// 体系结构无关的符号数据
 	namedSymbols := make([]Symbol, symtab.Len()/Sym64Size)
 	i := 0
 	var sym ELF64SymbolTableEntry
@@ -620,7 +628,7 @@ func (p *Parser) getSymbols64(typ SectionType) ([]Symbol, []byte, error) {
 			Name:    str,
 			Info:    sym.Info,
 			Other:   sym.Other,
-			Index:   SectionIndex(sym.Shndx),
+			Index:   SectionIndex(sym.Shndx), // 节索引
 			Value:   sym.Value,
 			Size:    sym.Size,
 			Version: "",
@@ -635,7 +643,9 @@ func (p *Parser) getSymbols64(typ SectionType) ([]Symbol, []byte, error) {
 			namedSymbols[i].Library, namedSymbols[i].Version = p.gnuVersion(i-1)
 		}
 	}
+	// 与体系结构相关的
 	p.F.Symbols64 = symbols
+	// 符号名称放在与体系结构无关的地方
 	p.F.NamedSymbols = namedSymbols
 	return namedSymbols, strdata, nil
 }

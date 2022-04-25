@@ -607,7 +607,7 @@ func (si SectionIndex) ShortString() string {
 
 }
 
-// Section type.
+// Section type. 每种类型只可能存在一个与ELF中
 type SectionType uint32
 
 const (

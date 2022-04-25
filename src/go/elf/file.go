@@ -106,7 +106,7 @@ func (f *File) SectionNames() []string {
 }
 
 // GetSectionByType returns the first section with the given type T (nil otherwise).
-// 遍历所有节，返回匹配的节。不失一般性，不会存在两个同类型的节
+// 遍历所有节数据描述符，返回匹配的节。可能存在同类型的节，这里没有做处理呢
 func (f *File) GetSectionByType(t SectionType) *ELF64Section {
 	// f.Section64 在 parseELFSections64 中解析赋值，后续直接通过f.Section64获取节即可
 	for _, s := range f.Sections64 {
