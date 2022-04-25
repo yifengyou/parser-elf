@@ -295,26 +295,40 @@ func (p *Parser) ParseELFSections(c Class) error {
 }
 
 // parseELFSections64 parses all sections in a 64-bit ELF binary.
+// 关键函数，解析所有节并放到p.F句柄下
 func (p *Parser) parseELFSections64() error {
+	// 做sanity check，健全性校验
 	if len(p.F.SectionHeaders64) == 0 {
+		// 若没有任何节，则重新解析ELF头
+		// 没有任何节的ELF没有任何意义
 		err := p.parseELFSectionHeader64()
 		if err != nil {
 			return err
 		}
 	}
+	// 从ELF头获取节数量
 	shnum := p.F.Header64.Shnum
+	// make创建节空间，数量为shnum
 	sections := make([]*ELF64Section, shnum)
-
+	// 遍历所有节
 	for i := 0; i < int(shnum); i++ {
 		s := &ELF64Section{}
+		// 从节头提取数据
 		size := p.F.SectionHeaders64[i].Size
 		s.ELF64SectionHeader = p.F.SectionHeaders64[i]
+		// 使用内置IO库读取区间数据
+		// func NewSectionReader(r ReaderAt, off int64, n int64) *SectionReader
+		// 返回的是SectionReader指针，若要获取字节数据，仍然需要调用其方法Read()
+		// sr是节数据，不是节头数据，节头已经安排在p.F.SectionHeaders64[]数组中
 		s.sr = io.NewSectionReader(p.fs, int64(s.Off), int64(size))
 
+		// 针对节是否压缩，操作不同
 		if s.Flags&uint64(SHF_COMPRESSED) == 0 {
 			s.Size = p.F.SectionHeaders64[i].Size
 		} else {
 			ch := new(ELF64CompressionHeader)
+			// 间接调用SectionReader的Read方法
+			// 将数据读取到特有的压缩节头中，binary.Read会自动处理大小端和数据解析
 			err := binary.Read(s.sr, p.F.Ident.ByteOrder, ch)
 			if err != nil {
 				return errors.New("error reading compressed header " + err.Error())
@@ -324,11 +338,15 @@ func (p *Parser) parseELFSections64() error {
 			s.AddrAlign = ch.AddrAlign
 			s.compressionOffset = int64(binary.Size(ch))
 		}
+		// ELF64Section表示一个完整的节，包括节头(元数据)和节数据
 		sections[i] = s
 	}
+	// 没有任何节，ELF没有意义
 	if len(sections) == 0 {
 		return errors.New("binary has no sections")
 	}
+	// 获取节头相关的字符串信息。这个信息也是存放在一个特定的节中的，这个节叫Shstrndx
+	// 获取指定节的数据
 	shstrtab, err := sections[p.F.Header64.Shstrndx].Data()
 	if err != nil {
 		return errors.New("error reading the section header strings table " + err.Error())
@@ -336,11 +354,13 @@ func (p *Parser) parseELFSections64() error {
 
 	for i, s := range sections {
 		var ok bool
+		// 遍历所有节，将节头名称赋值为解析过的字符串
 		s.SectionName, ok = getString(shstrtab, int(p.F.SectionHeaders64[i].Name))
 		if !ok {
 			return errors.New("failed to parse string table")
 		}
 	}
+	// 将句柄发到p.F下方便访问
 	p.F.Sections64 = sections
 	return nil
 }
@@ -453,7 +473,11 @@ func (p *Parser) parseELFProgramHeaders32() error {
 
 // ParseELFSymbols returns a slice of Symbols from parsing the symbol table
 // with the given type, along with the associated string table
-// (the null symbol at index 0 is omitted).
+// (the null symbol at index 0 is omitted). 忽略0项与readelf不符，因此调整代码再安排上
+// 符号表也是在某个节中，毫无疑问，本质也是节的解析
+// .dnysym / .symtab
+// 动态符号表 (.dynsym) 用来保存与动态链接相关的导入导出符号，不包括模块内部的符号
+// 符号表 (.symtab) 保存所有符号; .symtab中包括 .dynsym 中的符号。
 func (p *Parser) ParseELFSymbols(c Class, typ SectionType) error {
 	switch c {
 	case ELFCLASS64:
@@ -510,6 +534,8 @@ func (p *Parser) getSymbols32(typ SectionType) ([]Symbol, []byte, error) {
 	p.F.NamedSymbols = namedSymbols
 	return namedSymbols, strdata, nil
 }
+
+// 解析ELF64 符号表
 func (p *Parser) getSymbols64(typ SectionType) ([]Symbol, []byte, error) {
 	symtabSection := p.F.GetSectionByType(typ)
 	if symtabSection == nil {
