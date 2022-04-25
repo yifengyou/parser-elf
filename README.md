@@ -56,9 +56,18 @@ ELF 文件格式规范由**TIS(Tool Interface Standards – 工具接口标准)*
 
 * ELF文件头的标志位总共有16个字节的大小，目前只用到9个字节，剩余字节的值都为0
 * 节头大小固定0x40(64)字节，程序头大小固定0x38(56)字节
+* 目标文件（也就是文件名以.o结尾的文件）不存在program header，因为它不能运行
+* section header用于描述section的特性，而program header用于描述segment的特性
+* 符号表的第一个元素必须是 STN_UNDEF，其代表一个未定义的符号索引，此符号表项内部所有值都为0
 
 
+各种符号表：
 
+```
+.shstrtab  # 节头字符串表；节头中，每个节的名称，为其提供字符串;
+.dynstr    # 与.dynsym配套，为其提供字符串
+.strtab    # 与.symtab配套，为期提供字符串
+```
 
 
 
@@ -68,7 +77,7 @@ ELF 文件格式规范由**TIS(Tool Interface Standards – 工具接口标准)*
 
 ![20220425_202635_55](image/20220425_202635_55.png)
 
-![20220425_203049_10](image/20220425_203049_10.png) 
+![20220425_203049_10](image/20220425_203049_10.png)
 
 ![20220425_202710_91](image/20220425_202710_91.png)
 
@@ -76,11 +85,11 @@ ELF 文件格式规范由**TIS(Tool Interface Standards – 工具接口标准)*
 
 ![20220425_201910_72](image/20220425_201910_72.png)
 
+![20220425_211858_16](image/20220425_211858_16.png)
 
+![20220425_213716_12](image/20220425_213716_12.png)
 
-
-
-
+![20220425_215121_91](image/20220425_215121_91.png) 
 
 
 
@@ -88,7 +97,7 @@ ELF 文件格式规范由**TIS(Tool Interface Standards – 工具接口标准)*
 
 * <https://en.wikipedia.org/wiki/Executable_and_Linkable_Format>
 * <https://www.it610.com/article/1279468031667355648.htm>
-
+* <https://blog.csdn.net/C1033177205/article/details/121595804>
 
 
 
