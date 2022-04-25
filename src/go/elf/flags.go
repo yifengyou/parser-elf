@@ -613,7 +613,7 @@ type SectionType uint32
 const (
 	SHT_NULL           SectionType = 0          // inactive
 	SHT_PROGBITS       SectionType = 1          // program defined information
-	SHT_SYMTAB         SectionType = 2          // symbol table section
+	SHT_SYMTAB         SectionType = 2          // symbol table section所有符号（包括动态符号）
 	SHT_STRTAB         SectionType = 3          // string table section
 	SHT_RELA           SectionType = 4          // relocation section with addends
 	SHT_HASH           SectionType = 5          // symbol hash table section
@@ -622,7 +622,7 @@ const (
 	SHT_NOBITS         SectionType = 8          // no space section
 	SHT_REL            SectionType = 9          // relocation section - no addends
 	SHT_SHLIB          SectionType = 10         // reserved - purpose unknown
-	SHT_DYNSYM         SectionType = 11         // dynamic symbol table section
+	SHT_DYNSYM         SectionType = 11         // dynamic symbol table section动态符号
 	SHT_INIT_ARRAY     SectionType = 14         // Initialization function pointers.
 	SHT_FINI_ARRAY     SectionType = 15         // Termination function pointers.
 	SHT_PREINIT_ARRAY  SectionType = 16         // Pre-initialization function ptrs.

@@ -127,11 +127,14 @@ func (f *File) stringTable(link uint32) ([]byte, error) {
 }
 
 // getString extracts a string from an ELF string table.
+// 给定开头，从字节数组提取字符串（遇到EOF）
 func getString(section []byte, start int) (string, bool) {
 	if start < 0 || start >= len(section) {
 		return "", false
 	}
+	// 开头已经由start确定，只需要确定结尾，则遍历即可
 	for end := start; end < len(section); end++ {
+		// 遍历section字节数组，如果遇到EOF则左闭右开结束字符串提取
 		if section[end] == 0 {
 			return string(section[start:end]), true
 		}

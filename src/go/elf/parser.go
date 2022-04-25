@@ -18,10 +18,13 @@ type Parser struct {
 
 // New creates a new instance of parser.
 func New(filename string) (*Parser, error) {
+	// 使用saferwall作者另一个库binstream
+	// 将文件map到内存，作为字节流
 	fs, err := binstream.NewFileStream(filename)
 	if err != nil {
 		return nil, err
 	}
+	// Parser结构，将fs字节流内容提取填充到F结构中
 	p := &Parser{
 		fs: fs,
 		F:  &File{},
@@ -44,28 +47,35 @@ func NewBytes(data []byte) (*Parser, error) {
 
 // Parse will parse the entire ELF file.
 func (p *Parser) Parse() error {
+	// 解析ELF头部的Indent信息，描述该二进制文件对应的体系结构，包括对应的字长，CPU架构，大小端等
+	// Ident解析出的Class用于后面判定ELF32/ELF64用
 	err := p.ParseIdent()
 	if err != nil {
 		return err
 	}
+	// ELF头中最开头Indent里Class锚定了是ELF32还是ELF64
 	elfClass := p.F.Ident.Class
 	// 根据class（ELF32/ELF64）使用不同的头解析方法
 	err = p.ParseELFHeader(elfClass)
 	if err != nil {
 		return err
 	}
+	// 解析所有节头
 	err = p.ParseELFSectionHeaders(elfClass)
 	if err != nil {
 		return err
 	}
+	// 解析所有节
 	err = p.ParseELFSections(elfClass)
 	if err != nil {
 		return err
 	}
+	// 解析程序头
 	err = p.ParseELFProgramHeaders(elfClass)
 	if err != nil {
 		return err
 	}
+	// 解析所有符号表，指定为动态符号SHT_DYNSYM
 	err = p.ParseELFSymbols(elfClass, SHT_DYNSYM)
 	if err != nil {
 		return err
@@ -193,16 +203,18 @@ func (p *Parser) parseELFHeader64() error {
 		)
 		return errors.New(errString.Error())
 	}
+	// ELF 头部大小固定，直接读取即可，不过要注意大小端
+	// 32位的ELF header占52个字节，64位的ELF header占64个字节
 	if err := binary.Read(p.fs, p.F.Ident.ByteOrder, &hdr); err != nil {
 		return err
 	}
+	// 赋值，hdr其实做了数据拷贝，显然
 	p.F.Header64 = hdr
 	return nil
 }
 
 // ParseELFSectionHeaders reads the raw elf section header.
 func (p *Parser) ParseELFSectionHeaders(c Class) error {
-
 	switch c {
 	case ELFCLASS32:
 		return p.parseELFSectionHeader32()
@@ -257,33 +269,39 @@ func (p *Parser) parseELFSectionHeader64() error {
 		return errors.New("ELF file doesn't contain any section header table")
 	}
 	shnum := p.F.Header64.SectionHeadersNum()    // 节数量
-	shoff := p.F.Header64.SectionHeadersOffset() // 节偏移
-	shentz := p.F.Header64.Shentsize             // 头节大小
+	shoff := p.F.Header64.SectionHeadersOffset() // 所有节头信息所在文件的偏移
+	shentz := p.F.Header64.Shentsize             // 每节大小
 
 	names := make([]uint32, shnum)
 	sectionHeaders := make([]ELF64SectionHeader, shnum)
 	for i := 0; uint16(i) < shnum; i++ {
 		// Section index 0, and indices in the range 0xFF00–0xFFFF are reserved for special purposes.
+		// 从开头依次读取
 		offset := int64(shoff) + int64(i)*int64(shentz)
+		// 借用 binstream.Stream 调整游标，置为文件开头 i*sizeof(ELF64SectionHeader)+offset 位置
 		_, err := p.fs.Seek(offset, io.SeekStart)
 		if err != nil {
 			return err
 		}
 		// section header file offset
 		var sh ELF64SectionHeader
+		// 读取节头放到ELF64SectionHeader结构中
 		if err := binary.Read(p.fs, p.F.Ident.ByteOrder, &sh); err != nil {
 			return err
 		}
 		names[i] = sh.Name
+		// 所有的ELF64SectionHeader结构放到sectionHeaders数组中
 		sectionHeaders[i] = sh
-		p.F.SectionHeaders64 = sectionHeaders
 	}
+	// 没必要每次赋值，放到for循环外面
+	// p.F.SectionHeaders64存放了所有节头信息，不包括节数据
+	p.F.SectionHeaders64 = sectionHeaders
 	return nil
 }
 
 // ParseELFSections reads the raw elf sections.
+// 根据节头信息，继续解析节数据
 func (p *Parser) ParseELFSections(c Class) error {
-
 	switch c {
 	case ELFCLASS32:
 		return p.parseELFSections32()
@@ -298,6 +316,8 @@ func (p *Parser) ParseELFSections(c Class) error {
 // 关键函数，解析所有节并放到p.F句柄下
 func (p *Parser) parseELFSections64() error {
 	// 做sanity check，健全性校验
+	// 如果节头数据长度为空，那说明没有任何节数据呀，也可能是没有解析
+	// 这里做了尝试，重新解析节头
 	if len(p.F.SectionHeaders64) == 0 {
 		// 若没有任何节，则重新解析ELF头
 		// 没有任何节的ELF没有任何意义
@@ -306,29 +326,36 @@ func (p *Parser) parseELFSections64() error {
 			return err
 		}
 	}
-	// 从ELF头获取节数量
+	// 从ELF头获取节数量 len(p.F.SectionHeaders64) 不也可以吗？
 	shnum := p.F.Header64.Shnum
-	// make创建节空间，数量为shnum
+	// make创建节数据空间，数组，数量为shnum，每个元素就是一个完整节数据以及节数据的元数据（例如指向节头）
 	sections := make([]*ELF64Section, shnum)
-	// 遍历所有节
+	// 遍历所有节头，将节数据放到sections中，每个节构造一个ELF64Section结构
 	for i := 0; i < int(shnum); i++ {
 		s := &ELF64Section{}
-		// 从节头提取数据
+		// 从节头提取数据，节数据大小（字节）。这里记录的是不管压缩没有压缩的大小，静态ELF对应节的大小
+		// 后续会根据标志位判断是否压缩过，如果压缩过需要重新计算节数据大小，实际解压后的大小
 		size := p.F.SectionHeaders64[i].Size
+		// ELF64Section是节数据的元数据，包括了指向对应节头元数据SectionHeaders64的指针
 		s.ELF64SectionHeader = p.F.SectionHeaders64[i]
 		// 使用内置IO库读取区间数据
 		// func NewSectionReader(r ReaderAt, off int64, n int64) *SectionReader
 		// 返回的是SectionReader指针，若要获取字节数据，仍然需要调用其方法Read()
 		// sr是节数据，不是节头数据，节头已经安排在p.F.SectionHeaders64[]数组中
+		// 这里依然是从 fs binstream.Stream 读取内容
+		// s.Off 其实是在 s.ELF64SectionHeader 中
 		s.sr = io.NewSectionReader(p.fs, int64(s.Off), int64(size))
 
 		// 针对节是否压缩，操作不同
 		if s.Flags&uint64(SHF_COMPRESSED) == 0 {
+			// 没有压缩过，则节的大小其实就是节头记录的大小
 			s.Size = p.F.SectionHeaders64[i].Size
 		} else {
 			ch := new(ELF64CompressionHeader)
 			// 间接调用SectionReader的Read方法
 			// 将数据读取到特有的压缩节头中，binary.Read会自动处理大小端和数据解析
+			// 如果节是压缩的，那么压缩的元数据会放在节数据的开头
+			// 将节数据开头解析为ELF64CompressionHeader结构，其中就包括实际解压后的大小
 			err := binary.Read(s.sr, p.F.Ident.ByteOrder, ch)
 			if err != nil {
 				return errors.New("error reading compressed header " + err.Error())
@@ -336,6 +363,8 @@ func (p *Parser) parseELFSections64() error {
 			s.compressionType = CompressionType(ch.Type)
 			s.Size = ch.Size
 			s.AddrAlign = ch.AddrAlign
+			// 压缩数据的偏移compressionOffset，因为压缩节的元数据在节数据开头
+			// 那么部分压缩数据其实可能并非直接排在开头之后
 			s.compressionOffset = int64(binary.Size(ch))
 		}
 		// ELF64Section表示一个完整的节，包括节头(元数据)和节数据
@@ -346,12 +375,13 @@ func (p *Parser) parseELFSections64() error {
 		return errors.New("binary has no sections")
 	}
 	// 获取节头相关的字符串信息。这个信息也是存放在一个特定的节中的，这个节叫Shstrndx
-	// 获取指定节的数据
+	// 获取指定节的字符表
 	shstrtab, err := sections[p.F.Header64.Shstrndx].Data()
 	if err != nil {
 		return errors.New("error reading the section header strings table " + err.Error())
 	}
-
+	// p.F.SectionHeaders64[i].Name 节头也包含节名称字段，但是其为节名称在字符表的索引，而非实际字符串
+	// 节名称字符串需要通过检索字符表获得，最后存放在节数据元数据结构中
 	for i, s := range sections {
 		var ok bool
 		// 遍历所有节，将节头名称赋值为解析过的字符串
@@ -360,7 +390,14 @@ func (p *Parser) parseELFSections64() error {
 			return errors.New("failed to parse string table")
 		}
 	}
-	// 将句柄发到p.F下方便访问
+	// 将句柄发到p.F下方便访问，放在每节数据中
+	//type ELFBin64 struct {
+	//   Header64         ELF64Header
+	//   SectionHeaders64 []ELF64SectionHeader // 每节头数据
+	//   ProgramHeaders64 []ELF64ProgramHeader
+	//   Sections64       []*ELF64Section // 每节数据
+	//   Symbols64        []ELF64SymbolTableEntry
+	//}
 	p.F.Sections64 = sections
 	return nil
 }
@@ -431,21 +468,29 @@ func (p *Parser) ParseELFProgramHeaders(c Class) error {
 
 // parseELFProgramHeaders64 parses all program header table entries in a 64-bit ELF binary.
 func (p *Parser) parseELFProgramHeaders64() error {
+	// 程序头偏移，在ELF头中
 	phOff := p.F.Header64.Phoff
+	// 程序头条目，在ELF头中
 	phNum := p.F.Header64.Phnum
+	// 程序头每条记录大小，在ELF头中
 	phEntSize := p.F.Header64.Phentsize
+	// 程序头，数组，每个元素都是ELF64ProgramHeader，数量是ELF头记录的数量
 	programHeaders := make([]ELF64ProgramHeader, phNum)
-
+	// 遍历程序头，读取程序头放在数组中
 	for i := 0; i < int(phNum); i++ {
 		off := int64(phOff) + int64(i)*int64(phEntSize)
+		// 重置文件游标到off处
 		p.fs.Seek(off, io.SeekStart)
 		var ph ELF64ProgramHeader
+		// binary.Read 仍然跟游标有关，按大小端读取程序头元数据
 		err := binary.Read(p.fs, p.F.Ident.ByteOrder, &ph)
 		if err != nil {
 			return err
 		}
+		// 每程序头都放在数组中
 		programHeaders[i] = ph
 	}
+	// 所有程序头都放在全局对象中访问
 	p.F.ProgramHeaders64 = programHeaders
 	return nil
 }

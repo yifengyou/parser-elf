@@ -12,6 +12,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	// 关键函数，Parse解析，fs binstream.Stream 内容解析填充到结构化 F  *File 中
 	err = p.Parse()
 	if err != nil {
 		panic(err)
