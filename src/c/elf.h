@@ -929,11 +929,9 @@ typedef struct
 {
   Elf64_Half	vn_version;		/* Version of structure */
   Elf64_Half	vn_cnt;			/* Number of associated aux entries */
-  Elf64_Word	vn_file;		/* Offset of filename for this
-					   dependency */
+  Elf64_Word	vn_file;		/* Offset of filename for this dependency */
   Elf64_Word	vn_aux;			/* Offset in bytes to vernaux array */
-  Elf64_Word	vn_next;		/* Offset in bytes to next verneed
-					   entry */
+  Elf64_Word	vn_next;		/* Offset in bytes to next verneed entry */
 } Elf64_Verneed;
 
 

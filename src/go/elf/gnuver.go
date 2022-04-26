@@ -1,7 +1,10 @@
 // Package elf: gnuver.go implements the GNU Version table specification.
 package elf
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
 // GNUVersion holds the version information
 type GNUVersion struct {
@@ -40,8 +43,16 @@ func (p *Parser) ParseGNUVersionTable(str []byte) error {
 	// .gnu.version_r节的字符串数据存放在.dynstr节数据中
 	gnuVersionNeedSectionData, _ := gnuVersionNeedSection.Data()
 
-	var gnuVer []GNUVersion
+	var gnuVersionNeed []GNUVersion
 	i := 0
+	// typedef struct
+	//{
+	//  Elf64_Half	vn_version;		/* Version of structure */
+	//  Elf64_Half	vn_cnt;			/* Number of associated aux entries */
+	//  Elf64_Word	vn_file;		/* Offset of filename for this dependency */
+	//  Elf64_Word	vn_aux;			/* Offset in bytes to vernaux array */
+	//  Elf64_Word	vn_next;		/* Offset in bytes to next verneed entry */
+	//} Elf64_Verneed;
 	for {
 		if i+16 > len(gnuVersionNeedSectionData) {
 			break
@@ -50,15 +61,28 @@ func (p *Parser) ParseGNUVersionTable(str []byte) error {
 		if vers != 1 {
 			break
 		}
+		/* 如果cnt!=0，则表示有辅助信息，因此还需要一个循环去处理 */
 		cnt := p.F.ByteOrder().Uint16(gnuVersionNeedSectionData[i+2 : i+4])
+		fmt.Println("cnt:" + fmt.Sprintf("%d", cnt))
+		/* 文件名称，在.dynstr的偏移量 */
 		fileoff := p.F.ByteOrder().Uint32(gnuVersionNeedSectionData[i+4 : i+8])
+		/* 到vernaux array偏移量 */
 		aux := p.F.ByteOrder().Uint32(gnuVersionNeedSectionData[i+8 : i+12])
+		/* 到下一个条目的偏移量，相当于指向下一个节点的指针 */
 		next := p.F.ByteOrder().Uint32(gnuVersionNeedSectionData[i+12 : i+16])
 		// 从.dynstr字符串节指定偏移中提取string
 		file, _ := getString(str, int(fileoff))
 
 		var name string
-
+		// typedef struct
+		//{
+		//  Elf64_Word	vna_hash;		/* Hash value of dependency name */
+		//  Elf64_Half	vna_flags;		/* Dependency specific information */
+		//  Elf64_Half	vna_other;		/* Unused */
+		//  Elf64_Word	vna_name;		/* Dependency name string offset */
+		//  Elf64_Word	vna_next;		/* Offset in bytes to next vernaux
+		//					   entry */
+		//} Elf64_Vernaux;
 		j := i + int(aux)
 		for c := 0; c < int(cnt); c++ {
 			if j+16 > len(gnuVersionNeedSectionData) {
@@ -70,12 +94,12 @@ func (p *Parser) ParseGNUVersionTable(str []byte) error {
 			// 从.dynstr字符串节指定偏移中提取string
 			name, _ = getString(str, int(nameoff))
 			ndx := int(other)
-			if ndx >= len(gnuVer) {
+			if ndx >= len(gnuVersionNeed) {
 				a := make([]GNUVersion, 2*(ndx+1))
-				copy(a, gnuVer)
-				gnuVer = a
+				copy(a, gnuVersionNeed)
+				gnuVersionNeed = a
 			}
-			gnuVer[ndx] = GNUVersion{file, name}
+			gnuVersionNeed[ndx] = GNUVersion{file, name}
 			if next == 0 {
 				break
 			}
@@ -94,7 +118,7 @@ func (p *Parser) ParseGNUVersionTable(str []byte) error {
 		return errors.New("no gnu versym section in file")
 	}
 	gnuVersionSymSectionData, _ := gnuVersionSymSection.Data()
-	p.F.GNUVersion = gnuVer
+	p.F.GNUVersion = gnuVersionNeed
 	p.F.GNUVersionSym = gnuVersionSymSectionData
 	return nil
 
