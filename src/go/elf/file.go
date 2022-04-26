@@ -119,6 +119,7 @@ func (f *File) GetSectionByType(t SectionType) *ELF64Section {
 
 // stringTable reads and returns the string table given by the
 // specified link value.
+// 将给定link（节索引）的数据解析为字节数组，返回数据、错误
 func (f *File) stringTable(link uint32) ([]byte, error) {
 	if link <= 0 || link >= uint32(len(f.Sections64)) {
 		return nil, errors.New("section has invalid string table link")

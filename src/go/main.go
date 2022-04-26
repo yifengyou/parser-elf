@@ -28,6 +28,8 @@ func main() {
 	p.DumpSymbolTable()
 	p.DumpRelocationsSection()
 
+	//fmt.Println(p.F.GNUVersionSym)
+
 	os.Exit(0)
 	//jsonFile, err := p.DumpJSON()
 	//if err != nil {

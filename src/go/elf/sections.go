@@ -32,6 +32,7 @@ func (s *ELF32Section) Data() ([]byte, error) {
 // Data reads and returns the contents of the ELF section.
 // Even if the section is stored compressed in the ELF file,
 // Data returns uncompressed data.
+// 获取当前节数据，返回字节数组
 func (s *ELF64Section) Data() ([]byte, error) {
 
 	var rs io.ReadSeeker

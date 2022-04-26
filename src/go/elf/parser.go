@@ -523,6 +523,8 @@ func (p *Parser) parseELFProgramHeaders32() error {
 // .dnysym / .symtab
 // 动态符号表 (.dynsym) 用来保存与动态链接相关的导入导出符号，不包括模块内部的符号
 // 符号表 (.symtab) 保存所有符号; .symtab中包括 .dynsym 中的符号。
+// https://zhuanlan.zhihu.com/p/314912277
+// https://picture.iczhiku.com/weixin/message1608207112927.html
 func (p *Parser) ParseELFSymbols(c Class, typ SectionType) error {
 	switch c {
 	case ELFCLASS64:
@@ -600,7 +602,11 @@ func (p *Parser) getSymbols64(typ SectionType) ([]Symbol, []byte, error) {
 		return nil, nil, errors.New("length of symbol section is not a multiple of Sym64Size")
 	}
 	// 获取符号表对应节的字符表
-	strdata, err := p.F.stringTable(symtabSection.Link)
+	// 节头信息中有个link字段，用于表示关联的节
+	// .dynsym 关联的节是 .dynstr ，提供字符串
+	// stringTable作用是将给定的link（索引）所在节解析为字符串，返回字节数组
+	// 获取到对应 .dynstr节的字符串数据
+	dynstrStringTable, err := p.F.stringTable(symtabSection.Link)
 	if err != nil {
 		return nil, nil, errors.New("cannot load string table section")
 	}
@@ -608,6 +614,7 @@ func (p *Parser) getSymbols64(typ SectionType) ([]Symbol, []byte, error) {
 	//var skip [Sym64Size]byte
 	//symtab.Read(skip[:])
 	// 体系结构相关的符号表数组，每项ELF64SymbolTableEntry
+	// .dynsym 节数据其实是有规则的数据，可以拆分成若干条ELF64SymbolTableEntry项
 	symbols := make([]ELF64SymbolTableEntry, symtab.Len()/Sym64Size)
 	// 体系结构无关的符号数据
 	namedSymbols := make([]Symbol, symtab.Len()/Sym64Size)
@@ -615,7 +622,7 @@ func (p *Parser) getSymbols64(typ SectionType) ([]Symbol, []byte, error) {
 	var sym ELF64SymbolTableEntry
 	for symtab.Len() > 0 {
 		binary.Read(symtab, p.F.ByteOrder(), &sym)
-		str, _ := getString(strdata, int(sym.Name))
+		str, _ := getString(dynstrStringTable, int(sym.Name))
 		symbols[i] = ELF64SymbolTableEntry{
 			Name:  sym.Name,
 			Info:  sym.Info,
@@ -628,7 +635,7 @@ func (p *Parser) getSymbols64(typ SectionType) ([]Symbol, []byte, error) {
 			Name:    str,
 			Info:    sym.Info,
 			Other:   sym.Other,
-			Index:   SectionIndex(sym.Shndx), // 节索引
+			Index:   SectionIndex(sym.Shndx), // 类型转换为节索引  type SectionIndex int
 			Value:   sym.Value,
 			Size:    sym.Size,
 			Version: "",
@@ -636,7 +643,8 @@ func (p *Parser) getSymbols64(typ SectionType) ([]Symbol, []byte, error) {
 		}
 		i++
 	}
-	err = p.ParseGNUVersionTable(strdata)
+	// 获取GNU库依赖信息，传递dynstrStringTable
+	err = p.ParseGNUVersionTable(dynstrStringTable)
 	if err == nil {
 		for i := range namedSymbols {
 			// p.gnuVersion(i-1) 与上述跳过第一条目保持一致
@@ -647,5 +655,5 @@ func (p *Parser) getSymbols64(typ SectionType) ([]Symbol, []byte, error) {
 	p.F.Symbols64 = symbols
 	// 符号名称放在与体系结构无关的地方
 	p.F.NamedSymbols = namedSymbols
-	return namedSymbols, strdata, nil
+	return namedSymbols, dynstrStringTable, nil
 }
