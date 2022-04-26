@@ -26,7 +26,7 @@ func main() {
 	// 各类section挨个安排
 	p.DumpDynamicSection()
 	p.DumpSymbolTable()
-	p.DumpRelocationsSection()
+	//p.DumpRelocationsSection()
 
 	//fmt.Println(p.F.GNUVersionSym)
 
