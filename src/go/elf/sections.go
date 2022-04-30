@@ -2,6 +2,8 @@ package elf
 
 import (
 	"compress/zlib"
+	"encoding/hex"
+	"fmt"
 	"io"
 	"math"
 )
@@ -58,5 +60,14 @@ func (s *ELF64Section) Data() ([]byte, error) {
 	// func ReadFull(r Reader, buf []byte) (n int, err error)
 	// 读取字节切片，放到data中
 	n, err := io.ReadFull(rs, data)
+
 	return data[0:n], err
+}
+
+func (s *ELF64Section) HexDumpData() string {
+	data, err := s.Data()
+	if err != nil {
+		fmt.Printf("error" + err.Error())
+	}
+	return hex.Dump(data)
 }

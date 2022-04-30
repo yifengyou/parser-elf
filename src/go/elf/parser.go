@@ -5,9 +5,8 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
-	"io"
-
 	"github.com/saferwall/binstream"
+	"io"
 )
 
 // Parser implements a parsing engine for the ELF file format.

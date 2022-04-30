@@ -1513,6 +1513,7 @@ VERSION_STRING = '%%(prog)s: based on pyelftools %s' % __version__
 
 
 def main(stream=None):
+    print("# frok and add comment for repo https://github.com/eliben/pyelftools")
     # parse the command-line arguments and invoke ReadElf
     argparser = argparse.ArgumentParser(
             usage='usage: %(prog)s [options] <elf-file>',
@@ -1579,10 +1580,12 @@ def main(stream=None):
     args = argparser.parse_args()
 
     if args.help or not args.file:
+        # 如果没有提供文件，则直接打印帮助信息并且退出
         argparser.print_help()
         sys.exit(0)
 
     if args.show_all_headers:
+        # 显示ELF头，section 头， program头
         do_file_header = do_section_header = do_program_header = True
     else:
         do_file_header = args.show_file_header
