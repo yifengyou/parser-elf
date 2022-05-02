@@ -4,3 +4,6 @@ main
 src/python/build
 pyelftools.egg-info
 pyelftools.sublime-project
+bar
+libfoo.so
+src/go/gcc-amd64-linux-exec

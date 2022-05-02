@@ -8,7 +8,7 @@ import (
 
 func main() {
 	// 实现ELF解析，类似readelf -a读取的结果
-	p, err := elf.New("ls")
+	p, err := elf.New("gcc-amd64-linux-exec")
 	defer p.CloseFile()
 	if err != nil {
 		panic(err)
@@ -39,9 +39,14 @@ func main() {
 	// 各类section挨个安排
 	p.DumpDynamicSection()
 	p.DumpSymbolTable()
-	elf.PrintSeparator()
 	// 打印可重定位信息
-	p.DumpRelocationsSection()
+	p.DumpRelaDynSection()
+	p.DumpRelaPltSection()
+	// 打印 全局偏移表(Global Offset Table)
+	p.DumpGotSection()
+	p.DumpGotPltSection()
+
+
 
 	os.Exit(0)
 	jsonFile, err := p.DumpJSON()

@@ -459,16 +459,17 @@ func (p *Parser) DumpSymbolTable() {
 	}
 }
 
-func (p *Parser) DumpRelocationsSection() {
+func (p *Parser) DumpRelaDynSection() {
+	PrintSeparator()
 	switch p.F.Ident.Class {
 	case ELFCLASS32:
-		p.DumpRelocationsSection32()
+		p.DumpRelaDynSection32()
 	case ELFCLASS64:
-		p.DumpRelocationsSection64()
+		p.DumpRelaDynSection64()
 	}
 }
 
-func (p *Parser) DumpRelocationsSection32() {
+func (p *Parser) DumpRelaDynSection32() {
 
 }
 
@@ -495,7 +496,7 @@ Relocation section '.rela.plt' at offset 0x2b08 contains 112 entries:
 0000000000220f70  0000007a00000007 R_X86_64_JUMP_SLOT     0000000000000000 __ctype_b_loc@GLIBC_2.3 + 0
 0000000000220f78  0000007c00000007 R_X86_64_JUMP_SLOT     0000000000000000 __sprintf_chk@GLIBC_2.3.4 + 0
 */
-func (p *Parser) DumpRelocationsSection64() {
+func (p *Parser) DumpRelaDynSection64() {
 	sectionHeader := p.F.Get64SectionByName(".rela.dyn")
 	//fmt.Printf("%s\n", sectionHeader.HexDumpData())
 	//sectionData, err := sectionHeader.Data()
@@ -504,7 +505,7 @@ func (p *Parser) DumpRelocationsSection64() {
 	//}
 
 	entryNum := sectionHeader.Size / sectionHeader.EntSize
-	fmt.Printf("Relocation section '.rela.dyn' at offset 0x%x contains 206 entries:", sectionHeader.Off, entryNum)
+	fmt.Printf("Relocation section '.rela.dyn' at offset 0x%x contains %d entries:\n", sectionHeader.Off, entryNum)
 	// 数据结构
 	//type Rela64 struct {
 	//	Off    uint64 // Location to be relocated.
@@ -526,9 +527,180 @@ func (p *Parser) DumpRelocationsSection64() {
 		dataRela64[i] = sh
 	}
 	fmt.Println("    Offset             Info             Type               Symbol's Value  Symbol's Name + Addend")
-	for _, entry := range dataRela64 {
+	for index, entry := range dataRela64 {
 		// 000000000021ff70  0000000000000008 R_X86_64_RELATIVE                         5f30
-		fmt.Printf("%.16x %.16x %s %x\n", entry.Off, entry.Info, ReloType(R_TYPE64(entry.Info)).String(), entry.Addend)
+		fmt.Printf("%.16x %.16x %s %x [%d]\n", entry.Off, entry.Info, ReloType(R_TYPE64(entry.Info)).String(), entry.Addend, index+1)
 	}
+}
 
+func (p *Parser) DumpRelaPltSection() {
+	PrintSeparator()
+	switch p.F.Ident.Class {
+	case ELFCLASS32:
+		p.DumpRelaPltSection32()
+	case ELFCLASS64:
+		p.DumpRelaPltSection64()
+	}
+}
+func (p *Parser) DumpRelaPltSection32() {
+
+}
+
+func (p *Parser) DumpRelaPltSection64() {
+	sectionHeader := p.F.Get64SectionByName(".rela.plt")
+	//fmt.Printf("%s\n", sectionHeader.HexDumpData())
+	//sectionData, err := sectionHeader.Data()
+	//if err != nil {
+	//	fmt.Printf(err.Error())
+	//}
+	//
+	//
+	entryNum := sectionHeader.Size / sectionHeader.EntSize
+	fmt.Printf(" Relocation section '.rela.plt' at offset 0x%x contains %d entries:\n", sectionHeader.Off, entryNum)
+	// 数据结构
+	//type Rela64 struct {
+	//	Off    uint64 // Location to be relocated.
+	//	Info   uint64 // Relocation type and symbol index.
+	//	Addend int64  // Addend.
+	//}
+	//
+	dataRela64 := make([]Rela64, entryNum)
+	for i := 0; uint64(i) < entryNum; i++ {
+		offset := int64(sectionHeader.Off) + int64(i)*int64(sectionHeader.EntSize)
+		_, err := p.fs.Seek(offset, io.SeekStart)
+		if err != nil {
+			panic(err.Error())
+		}
+		var sh Rela64
+		if err := binary.Read(p.fs, p.F.Ident.ByteOrder, &sh); err != nil {
+			panic(err.Error())
+		}
+		dataRela64[i] = sh
+	}
+	fmt.Println("    Offset             Info             Type               Symbol's Value  Symbol's Name + Addend")
+	for index, entry := range dataRela64 {
+		// 000000000021ff70  0000000000000008 R_X86_64_RELATIVE                         5f30
+		fmt.Printf("%.16x %.16x %-21s   %.16x %x  [%d]\n", entry.Off, entry.Info, ReloType(R_TYPE64(entry.Info)).String(), 0, entry.Addend, index+1)
+	}
+}
+
+func (p *Parser) DumpGotSection() {
+	PrintSeparator()
+	switch p.F.Ident.Class {
+	case ELFCLASS32:
+		p.DumpGotSection32()
+	case ELFCLASS64:
+		p.DumpGotSection64()
+	}
+}
+func (p *Parser) DumpGotSection32() {
+	sectionHeader := p.F.Get32SectionByName(".got")
+	entryNum := sectionHeader.Size / sectionHeader.EntSize
+	fmt.Printf(" Relocation section '.got' at offset 0x%x contains %d entries:\n", sectionHeader.Off, entryNum)
+	dataRela32 := make([]uint32, entryNum)
+	for i := 0; uint32(i) < entryNum; i++ {
+		offset := int32(sectionHeader.Off) + int32(i)*int32(sectionHeader.EntSize)
+		_, err := p.fs.Seek(int64(offset), io.SeekStart)
+		if err != nil {
+			panic(err.Error())
+		}
+		var sh uint32
+		if err := binary.Read(p.fs, p.F.Ident.ByteOrder, &sh); err != nil {
+			panic(err.Error())
+		}
+		dataRela32[i] = sh
+	}
+	fmt.Println("    Value")
+	for index, entry := range dataRela32 {
+		// 000000000021ff70  0000000000000008 R_X86_64_RELATIVE                         5f30
+		fmt.Printf("%.8x[%d]\n", entry, index+1)
+	}
+}
+
+func (p *Parser) DumpGotSection64() {
+	sectionHeader := p.F.Get64SectionByName(".got")
+	entryNum := sectionHeader.Size / sectionHeader.EntSize
+	fmt.Printf(" Got section '.got' at offset 0x%x contains %d entries:\n", sectionHeader.Off, entryNum)
+	dataRela64 := make([]uint64, entryNum)
+	for i := 0; uint64(i) < entryNum; i++ {
+		offset := int64(sectionHeader.Off) + int64(i)*int64(sectionHeader.EntSize)
+		_, err := p.fs.Seek(offset, io.SeekStart)
+		if err != nil {
+			panic(err.Error())
+		}
+		var sh uint64
+		if err := binary.Read(p.fs, p.F.Ident.ByteOrder, &sh); err != nil {
+			panic(err.Error())
+		}
+		dataRela64[i] = sh
+	}
+	fmt.Println("    Value")
+	for index, entry := range dataRela64 {
+		// 000000000021ff70  0000000000000008 R_X86_64_RELATIVE                         5f30
+		switch index {
+		case 0:
+			fmt.Printf("[%d] 0x%.16x (address of .dynamic section)\n", index+1, entry)
+		case 1:
+			fmt.Printf("[%d] 0x%.16x (address of link_map object)\n", index+1, entry)
+		case 2:
+			fmt.Printf("[%d] 0x%.16x (address of _dl_runtime_resolve function)\n", index+1, entry)
+		default:
+			fmt.Printf("[%d] 0x%.16x\n", index+1, entry)
+
+		}
+	}
+}
+
+
+// .got Section 存放外部全局变量的 GOT 表，非延迟绑定
+// .got.plt Section 存放外部函数的 GOT 表，例如 printf，采用延迟绑定
+
+func (p *Parser) DumpGotPltSection() {
+	PrintSeparator()
+	switch p.F.Ident.Class {
+	case ELFCLASS32:
+		p.DumpGotPltSection32()
+	case ELFCLASS64:
+		p.DumpGotPltSection64()
+	}
+}
+func (p *Parser) DumpGotPltSection32() {
+
+}
+
+func (p *Parser) DumpGotPltSection64() {
+	sectionHeader := p.F.Get64SectionByName(".got.plt")
+	if nil == sectionHeader {
+		fmt.Println("No .git.plt section found!")
+		return
+	}
+	entryNum := sectionHeader.Size / sectionHeader.EntSize
+	fmt.Printf(" Got section '.got.plt' at offset 0x%x contains %d entries:\n", sectionHeader.Off, entryNum)
+	dataRela64 := make([]uint64, entryNum)
+	for i := 0; uint64(i) < entryNum; i++ {
+		offset := int64(sectionHeader.Off) + int64(i)*int64(sectionHeader.EntSize)
+		_, err := p.fs.Seek(offset, io.SeekStart)
+		if err != nil {
+			panic(err.Error())
+		}
+		var sh uint64
+		if err := binary.Read(p.fs, p.F.Ident.ByteOrder, &sh); err != nil {
+			panic(err.Error())
+		}
+		dataRela64[i] = sh
+	}
+	fmt.Println("    Value")
+	for index, entry := range dataRela64 {
+		switch index {
+		case 0:
+			fmt.Printf("[%d] 0x%.16x (address of .dynamic section)\n", index+1, entry)
+		case 1:
+			fmt.Printf("[%d] 0x%.16x (address of link_map object)\n", index+1, entry)
+		case 2:
+			fmt.Printf("[%d] 0x%.16x (address of _dl_runtime_resolve function)\n", index+1, entry)
+		default:
+			fmt.Printf("[%d] 0x%.16x\n", index+1, entry)
+
+		}
+	}
 }
