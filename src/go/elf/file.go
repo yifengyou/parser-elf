@@ -105,9 +105,10 @@ func (f *File) SectionNames() []string {
 	return []string{""}
 }
 
-// GetSectionByType returns the first section with the given type T (nil otherwise).
+// Get64SectionByType returns the first section with the given type T (nil otherwise).
 // 遍历所有节数据描述符，返回匹配的节。可能存在同类型的节，这里没有做处理呢
-func (f *File) GetSectionByType(t SectionType) *ELF64Section {
+// 这。。只能用于64位的额，通用性比较尴尬~，作者看来没认真搞啊
+func (f *File) Get64SectionByType(t SectionType) *ELF64Section {
 	// f.Section64 在 parseELFSections64 中解析赋值，后续直接通过f.Section64获取节即可
 	for _, s := range f.Sections64 {
 		if s.Type == uint32(t) {
@@ -116,6 +117,40 @@ func (f *File) GetSectionByType(t SectionType) *ELF64Section {
 	}
 	return nil
 }
+
+func (f *File) Get32SectionByType(t SectionType) *ELF32Section {
+	// f.Section64 在 parseELFSections64 中解析赋值，后续直接通过f.Section64获取节即可
+	for _, s := range f.Sections32 {
+		if s.Type == uint32(t) {
+			return s
+		}
+	}
+	return nil
+}
+
+
+func (f *File) Get32SectionByName(name string) *ELF32Section {
+	// f.Section64 在 parseELFSections64 中解析赋值，后续直接通过f.Section64获取节即可
+	for _, s := range f.Sections32 {
+		if s.SectionName == name {
+			return s
+		}
+	}
+	return nil
+}
+
+// Get64SectionByType returns the first section with the given type T (nil otherwise).
+// 遍历所有节数据描述符，返回匹配的节。可能存在同类型的节，这里没有做处理呢
+func (f *File) Get64SectionByName(name string) *ELF64Section {
+	// f.Section64 在 parseELFSections64 中解析赋值，后续直接通过f.Section64获取节即可
+	for _, s := range f.Sections64 {
+		if s.SectionName == name {
+			return s
+		}
+	}
+	return nil
+}
+
 
 // stringTable reads and returns the string table given by the
 // specified link value.

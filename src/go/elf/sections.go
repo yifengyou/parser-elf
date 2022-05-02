@@ -60,7 +60,6 @@ func (s *ELF64Section) Data() ([]byte, error) {
 	// func ReadFull(r Reader, buf []byte) (n int, err error)
 	// 读取字节切片，放到data中
 	n, err := io.ReadFull(rs, data)
-
 	return data[0:n], err
 }
 

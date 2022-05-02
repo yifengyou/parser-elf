@@ -35,7 +35,7 @@ func (p *Parser) ParseGNUVersionTable(str []byte) error {
 	// GNU 依赖版本信息存放在.gnu.version_r节中
 	// .gnu.version_r 表示二进制程序实际依赖的库文件版本
 	// SHT_GNU_VERNEED GNU version needs section
-	gnuVersionNeedSection := p.F.GetSectionByType(SHT_GNU_VERNEED)
+	gnuVersionNeedSection := p.F.Get64SectionByType(SHT_GNU_VERNEED)
 	if gnuVersionNeedSection == nil {
 		return errors.New("no gnu verneed section in file")
 	}
@@ -113,7 +113,7 @@ func (p *Parser) ParseGNUVersionTable(str []byte) error {
 	}
 	// Versym parallels symbol table, indexing into verneed.
 	// GNU库依赖符号信息
-	gnuVersionSymSection := p.F.GetSectionByType(SHT_GNU_VERSYM)
+	gnuVersionSymSection := p.F.Get64SectionByType(SHT_GNU_VERSYM)
 	if gnuVersionSymSection == nil {
 		return errors.New("no gnu versym section in file")
 	}

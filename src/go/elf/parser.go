@@ -537,7 +537,7 @@ func (p *Parser) ParseELFSymbols(c Class, typ SectionType) error {
 }
 
 func (p *Parser) getSymbols32(typ SectionType) ([]Symbol, []byte, error) {
-	symtabSection := p.F.GetSectionByType(typ)
+	symtabSection := p.F.Get64SectionByType(typ)
 	if symtabSection == nil {
 		return nil, nil, ErrNoSymbols
 	}
@@ -583,9 +583,9 @@ func (p *Parser) getSymbols32(typ SectionType) ([]Symbol, []byte, error) {
 
 // 解析ELF64 符号表
 func (p *Parser) getSymbols64(typ SectionType) ([]Symbol, []byte, error) {
-	// GetSectionByType是F  *File的方法
+	// Get64SectionByType是F  *File的方法
 	// 遍历所有节数据描述符，获取匹配符号表的节数据描述符
-	symtabSection := p.F.GetSectionByType(typ)
+	symtabSection := p.F.Get64SectionByType(typ)
 	if symtabSection == nil {
 		return nil, nil, ErrNoSymbols
 	}

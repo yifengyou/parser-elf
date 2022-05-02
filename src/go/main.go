@@ -18,22 +18,19 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	// 打印所有节内容（节数据区域、非节头、非程序头）
-	//stdoutDumper := hex.Dumper(os.Stdout)
-	//defer stdoutDumper.Close()
+
+	// hexdump打印所有节内容（节数据区域、非节头、非程序头）
 	for index, sn := range p.F.Sections64 {
 		fmt.Println()
-		fmt.Printf("[ %d ] %s\n", index, sn.SectionName)
-		fmt.Printf(sn.HexDumpData())
-		//data, err := sn.Data()
-		//if err != nil {
-		//	fmt.Printf("error" + err.Error())
-		//}
-		//fmt.Println(hex.Dump(data))
-		//stdoutDumper.Write(data)
+		fmt.Printf("[ %d ] Name:[%s] Size:[%d] Offset:[0x%x]\n",
+			index,
+			sn.SectionName,
+			sn.Size, sn.Off,
+		)
+		fmt.Printf("%s", sn.HexDumpData())
 	}
 
-	os.Exit(0)
+	//os.Exit(0)
 	// ELF Header
 	p.DumpHeaderIndent()
 	p.DumpHeaderWithoutIndent()
@@ -42,9 +39,9 @@ func main() {
 	// 各类section挨个安排
 	p.DumpDynamicSection()
 	p.DumpSymbolTable()
+	elf.PrintSeparator()
+	// 打印可重定位信息
 	p.DumpRelocationsSection()
-
-	//fmt.Println(p.F.GNUVersionSym)
 
 	os.Exit(0)
 	jsonFile, err := p.DumpJSON()

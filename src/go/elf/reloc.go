@@ -42,6 +42,54 @@ func R_SYM64(info uint64) uint32    { return uint32(info >> 32) }
 func R_TYPE64(info uint64) uint32   { return uint32(info) }
 func R_INFO(sym, typ uint32) uint64 { return uint64(sym)<<32 | uint64(typ) }
 
+type ReloType uint32
+
+var RelaTypeStrings = []flagName{
+	{ 0, "R_X86_64_NONE" },
+	{ 1, "R_X86_64_64" },
+	{ 2, "R_X86_64_PC32" },
+	{ 3, "R_X86_64_GOT32" },
+	{ 4, "R_X86_64_PLT32" },
+	{ 5, "R_X86_64_COPY" },
+	{ 6, "R_X86_64_GLOB_DAT" },
+	{ 7, "R_X86_64_JUMP_SLOT" },
+	{ 8, "R_X86_64_RELATIVE" },
+	{ 9, "R_X86_64_GOTPCREL" },
+	{ 10, "R_X86_64_32" },
+	{ 11, "R_X86_64_32S" },
+	{ 12, "R_X86_64_16" },
+	{ 13, "R_X86_64_PC16" },
+	{ 14, "R_X86_64_8" },
+	{ 15, "R_X86_64_PC8" },
+	{ 16, "R_X86_64_DTPMOD64" },
+	{ 17, "R_X86_64_DTPOFF64" },
+	{ 18, "R_X86_64_TPOFF64" },
+	{ 19, "R_X86_64_TLSGD" },
+	{ 20, "R_X86_64_TLSLD" },
+	{ 21, "R_X86_64_DTPOFF32" },
+	{ 22, "R_X86_64_GOTTPOFF" },
+	{ 23, "R_X86_64_TPOFF32" },
+	{ 24, "R_X86_64_PC64" },
+	{ 25, "R_X86_64_GOTOFF64" },
+	{ 26, "R_X86_64_GOTPC32" },
+	{ 27, "R_X86_64_GOT64" },
+	{ 28, "R_X86_64_GOTPCREL64" },
+	{ 29, "R_X86_64_GOTPC64" },
+	{ 30, "R_X86_64_GOTPLT64" },
+	{ 31, "R_X86_64_PLTOFF64" },
+	{ 32, "R_X86_64_SIZE32" },
+	{ 33, "R_X86_64_SIZE64" },
+	{ 34, "R_X86_64_GOTPC32_TLSDESC" },
+	{ 35, "R_X86_64_TLSDESC_CALL" },
+	{ 36, "R_X86_64_TLSDESC" },
+	{ 37, "R_X86_64_IRELATIVE" },
+	{ 38, "R_X86_64_RELATIVE64" },
+	{ 39, "R_X86_64_NUM" },
+}
+
+func (rt ReloType) String() string   { return stringify(uint32(rt), RelaTypeStrings, false) }
+func (rt ReloType) GoString() string { return stringify(uint32(rt), RelaTypeStrings, true) }
+
 // ApplyRelocations will apply relocations depending on the target binary.
 // This step essentially processes symbolic references to their definitions.
 func (p *Parser) ApplyRelocations(dst []byte, rels []byte) error {
