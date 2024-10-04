@@ -7,3 +7,4 @@ pyelftools.sublime-project
 bar
 libfoo.so
 src/go/gcc-amd64-linux-exec
+backup

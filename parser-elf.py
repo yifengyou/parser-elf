@@ -1,0 +1,328 @@
+#!/usr/bin/python3
+
+import sys
+from elftools.elf.elffile import ELFFile
+
+
+def hexdump(data, width=16):
+    """
+    打印数据的十六进制和 ASCII 表示，类似于 hexdump -C 命令。
+
+    参数:
+    data -- 要打印的数据（字节串或字符串）
+    width -- 每行显示的字节数，默认为 16
+    """
+    # 如果数据是字符串，转换为字节串
+    if isinstance(data, str):
+        data = data.encode('utf-8')
+
+    # 计算需要打印的行数
+    num_lines = (len(data) + width - 1) // width
+
+    for i in range(num_lines):
+        start = i * width
+        end = min((i + 1) * width, len(data))
+
+        # 打印十六进制表示
+        hex_part = ' '.join('{:02x}'.format(byte) for byte in data[start:end])
+        print(f"{start:08x}: {hex_part:<{width * 3}}", end='')
+
+        # 打印 ASCII 表示
+        ascii_part = ''.join(chr(byte) if 32 <= byte <= 126 else '.' for byte in data[start:end])
+        print(f"{'':{width}} {ascii_part}")
+
+
+def parse_elf_header(elf):
+    """
+    binutils-2.35.2/elfcpp/elfcpp_internal.h
+    template<int size>
+    struct Ehdr_data
+    {
+      unsigned char e_ident[EI_NIDENT];
+      Elf_Half e_type;
+      Elf_Half e_machine;
+      Elf_Word e_version;
+      typename Elf_types<size>::Elf_Addr e_entry;
+      typename Elf_types<size>::Elf_Off e_phoff;
+      typename Elf_types<size>::Elf_Off e_shoff;
+      Elf_Word e_flags;
+      Elf_Half e_ehsize;
+      Elf_Half e_phentsize;
+      Elf_Half e_phnum;
+      Elf_Half e_shentsize;
+      Elf_Half e_shnum;
+      Elf_Half e_shstrndx;
+    };
+
+    :param elf:
+    :return:
+    """
+    print(f"ELF Header:")
+    # ELF 头部信息
+    e_ident = elf.header.e_ident
+    # 打印ei_开始的信息
+    for i in e_ident.items():
+        if i[0].startswith('EI_'):
+            print(f"{i[0].lower()}: {i[1]}")
+    # 打印e_开头的信息
+    print(f"e_type: {elf.header['e_type']} # Type")
+    print(f"e_machine: {elf.header['e_machine']} # Machine architecture")
+    print(f"e_version: {elf.header['e_version']} # Version")
+    print(f"e_entry: {hex(elf.header['e_entry'])} # Entry point address")
+    print(f"e_phoff: {elf.header['e_phoff']}({hex(elf.header['e_phoff'])})(bytes into file) # Start of program headers")
+    print(f"e_shoff: {elf.header['e_shoff']}({hex(elf.header['e_shoff'])})(bytes into file) # Start of section headers")
+    print(f"e_flags: {elf.header['e_flags']} # Flags")
+    print(f"e_ehsize: {elf.header['e_ehsize']} (bytes) # Size of this header")
+    print(f"e_phentsize: {elf.header['e_phentsize']} (bytes) # Size of program headers")
+    print(f"e_phnum: {elf.header['e_phnum']} # Number of program headers")
+    print(f"e_shentsize: {elf.header['e_shentsize']} (bytes) # Size of section headers")
+    print(f"e_shnum: {elf.header['e_shnum']} # Number of section headers")
+    print(f"e_shstrndx: {elf.header['e_shstrndx']} # Section header string table index")
+    print('-' * 128)
+
+
+def parse_program_header_table(elf):
+    """
+    binutils-2.35.2/elfcpp/elfcpp_internal.h
+
+    template<>
+    struct Phdr_data<32>
+    {
+      Elf_Word p_type;
+      Elf_types<32>::Elf_Off p_offset;
+      Elf_types<32>::Elf_Addr p_vaddr;
+      Elf_types<32>::Elf_Addr p_paddr;
+      Elf_Word p_filesz;
+      Elf_Word p_memsz;
+      Elf_Word p_flags;
+      Elf_Word p_align;
+    };
+
+    template<>
+    struct Phdr_data<64>
+    {
+      Elf_Word p_type;
+      Elf_Word p_flags;
+      Elf_types<64>::Elf_Off p_offset;
+      Elf_types<64>::Elf_Addr p_vaddr;
+      Elf_types<64>::Elf_Addr p_paddr;
+      Elf_Xword p_filesz;
+      Elf_Xword p_memsz;
+      Elf_Xword p_align;
+    };
+
+    :param elf:
+    :return:
+    """
+    print(f"ELF Program header table:")
+    # if not elf.has_program_headers:
+    #     print("ELF file does not contain a program header table.")
+    #     return
+
+    for segment in elf.iter_segments():
+        print(f"p_type: {segment['p_type']} "
+              f"p_offset: {segment['p_offset']}  "
+              f"p_vaddr: {segment['p_vaddr']} "
+              f"p_paddr: {segment['p_paddr']}  "
+              f"p_filesz: {segment['p_filesz']} "
+              f"p_memsz: {segment['p_memsz']} "
+              f"p_flags: {segment['p_flags']} "
+              f"p_align: {segment['p_align']}")
+
+    print('-' * 128)
+
+
+def parse_typeof_symtab(section):
+    """
+    binutils-2.35.2/elfcpp/elfcpp_internal.h
+    template<int size>
+    struct Sym_data;
+
+    template<>
+    struct Sym_data<32>
+    {
+      Elf_Word st_name;
+      Elf_types<32>::Elf_Addr st_value;
+      Elf_Word st_size;
+      unsigned char st_info;
+      unsigned char st_other;
+      Elf_Half st_shndx;
+    };
+
+    template<>
+    struct Sym_data<64>
+    {
+      Elf_Word st_name;
+      unsigned char st_info;
+      unsigned char st_other;
+      Elf_Half st_shndx;
+      Elf_types<64>::Elf_Addr st_value;
+      Elf_Xword st_size;
+    };
+    """
+    section_offset = section['sh_offset']
+    section_size = section['sh_size']
+    print(f"section offset:{section_offset}[{hex(section_offset)}] size:{section_size}[{hex(section_size)}] "
+          f"entry number {sum(1 for _ in section.iter_symbols())}")
+    for symbol in section.iter_symbols():
+        sym_type = symbol.entry['st_info']['type']
+        print(f"symbol from section {section.name} {section['sh_type']} - symbol name:{symbol.name} "
+              f"st_name:{symbol['st_name']} "
+              f"st_value: 0x{symbol['st_value']:x} "
+              f"st_size:{symbol['st_size']} "
+              f"st_other:{symbol['st_other']['visibility']} "
+              f"bind:{symbol.entry['st_info']['bind']} "
+              f"sym_type:{sym_type}")
+
+
+def parse_typeof_strtab(section):
+    strtab = section.data()
+    section_offset = section['sh_offset']
+    section_size = section['sh_size']
+    print(f"Hexdump String Table Contents {section.name} {section['sh_type']}:")
+    print(f"section offset:{section_offset}[{hex(section_offset)}] size:{section_size}[{hex(section_size)}]")
+    hexdump(strtab)
+    print(f"String Table Contents {section.name} {section['sh_type']}:")
+    str_list = strtab.split(b'\x00')
+    print(f"section offset:{section_offset}[{hex(section_offset)}] size:{section_size}[{hex(section_size)}] "
+          f"entry number {len(str_list)}")
+    for s in str_list:
+        if s:
+            print(f"str from section {section.name} {section['sh_type']} : '{s.decode('utf-8')}'")
+
+
+def parse_typeof_rela(section):
+    """
+    template<int size>
+    struct Rela_data
+    {
+      typename Elf_types<size>::Elf_Addr r_offset;
+      typename Elf_types<size>::Elf_WXword r_info;
+      typename Elf_types<size>::Elf_Swxword r_addend;
+    };
+    """
+    section_offset = section['sh_offset']
+    section_size = section['sh_size']
+    print(f"section offset:{section_offset}[{hex(section_offset)}] size:{section_size}[{hex(section_size)}] "
+          f"entry number {sum(1 for _ in section.iter_relocations())}")
+    for rela in section.iter_relocations():
+        print(f"r_offset: {hex(rela['r_offset'])} "
+              f"r_info: {hex(rela['r_info'])} "
+              f"r_addend: {hex(rela['r_addend'])} "
+              f"r_info_sym: {hex(rela.entry['r_info_sym'])} "
+              f"r_info_type: {hex(rela.entry['r_info_type'])} ")
+        # 获取符号名称（如果存在）
+        # if rela.entry['r_info_sym'] is not None:
+        #     symbol = section.get_symbol(rela.entry['r_info_sym'])
+        #     print(f"  Symbol Name: {symbol.name}")
+        # else:
+        #     print("  Symbol Name: (none)")
+
+
+def parse_typeof_default(section):
+    # just hexdump section
+    strtab = section.data()
+    section_offset = section['sh_offset']
+    section_size = section['sh_size']
+    print(f"Hexdump String Table Contents {section.name} {section['sh_type']}:")
+    print(f"section offset:{section_offset}[{hex(section_offset)}] size:{section_size}[{hex(section_size)}]")
+    hexdump(strtab)
+    print(f"String Table Contents {section.name} {section['sh_type']}:")
+    str_list = strtab.split(b'\x00')
+    print(f"section offset:{section_offset}[{hex(section_offset)}] size:{section_size}[{hex(section_size)}] "
+          f"entry number {len(str_list)}")
+    for s in str_list:
+        s = s.strip().decode('utf-8', errors='ignore')
+        if s and s.isprintable():
+            print(f"str from section {section.name} {section['sh_type']} : "
+                  f"'{s}'")
+
+
+def parse_all_sections(elf):
+    print(f"ELF all section:")
+    for section in elf.iter_sections():
+        print(f"-> parse name:{section.name} "
+              f"sh_name:{section['sh_name']} "
+              f"sh_type:{section['sh_type']}")
+
+        if section['sh_type'] == 'SHT_SYMTAB':
+            parse_typeof_symtab(section)
+        elif section['sh_type'] == 'SHT_STRTAB':
+            parse_typeof_strtab(section)
+        elif section['sh_type'] == 'SHT_RELA':
+            parse_typeof_rela(section)
+        else:
+            parse_typeof_default(section)
+
+    print('-' * 128)
+
+
+def parse_section_header_table(elf):
+    """
+    binutils-2.35.2/elfcpp/elfcpp_internal.h
+    // An ELF section header.
+
+    template<int size>
+    struct Shdr_data
+    {
+      Elf_Word sh_name;
+      Elf_Word sh_type;
+      typename Elf_types<size>::Elf_WXword sh_flags;
+      typename Elf_types<size>::Elf_Addr sh_addr;
+      typename Elf_types<size>::Elf_Off sh_offset;
+      typename Elf_types<size>::Elf_WXword sh_size;
+      Elf_Word sh_link;
+      Elf_Word sh_info;
+      typename Elf_types<size>::Elf_WXword sh_addralign;
+      typename Elf_types<size>::Elf_WXword sh_entsize;
+    };
+
+    :param elf:
+    :return:
+    """
+    print(f"ELF section header table:")
+    # 遍历section header table
+    for section in elf.iter_sections():
+        print(f"sh_name:{section['sh_name']} "
+              f"sh_type:{section['sh_type']} "
+              f"sh_flags:{section['sh_flags']} "
+              f"sh_addr:{section['sh_addr']} "
+              f"sh_offset:{section['sh_offset']} "
+              f"sh_size:{section['sh_size']} "
+              f"sh_link:{section['sh_link']} "
+              f"sh_info:{section['sh_info']} "
+              f"sh_addralign:{section['sh_addralign']} "
+              f"sh_entsize:{section['sh_entsize']}")
+    print('-' * 128)
+
+
+def parse_elf(file_path):
+    try:
+        # 打开 ELF 文件
+        with open(file_path, 'rb') as f:
+            elf = ELFFile(f)
+
+            # ELF Header
+            parse_elf_header(elf)
+
+            # ELF Program Header Table
+            parse_program_header_table(elf)
+
+            # ELF Sections
+            # parse_all_sections(elf)
+
+            # ELF Section Header Table
+            parse_section_header_table(elf)
+
+    except FileNotFoundError:
+        print(f"Error: File '{file_path}' not found.")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+
+if __name__ == "__main__":
+    if len(sys.argv) != 2:
+        print("Usage: python script.py <ELF file path>")
+    else:
+        elf_file_path = sys.argv[1]
+        parse_elf(elf_file_path)
