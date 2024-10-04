@@ -1,8 +1,11 @@
 #!/usr/bin/python3
 import argparse
 import os
+import subprocess
 import sys
 from elftools.elf.elffile import ELFFile
+
+CURRENT_VERSION = "0.0.1"
 
 
 def check_python_version():
@@ -328,6 +331,7 @@ def parse_elf(file_path):
     except Exception as e:
         print(f"An error occurred: {e}")
 
+
 def parse_all_sections_info(elf):
     print(f"ELF all section:")
     for section in elf.iter_sections():
@@ -335,6 +339,7 @@ def parse_all_sections_info(elf):
               f"sh_name:{section['sh_name']} "
               f"sh_type:{section['sh_type']}")
     print('-' * 128)
+
 
 def do_handle_info(args):
     try:
@@ -367,6 +372,47 @@ def handle_info(args):
     do_handle_info(args)
 
 
+def handle_vmlinux(args):
+    elf_file_path = os.path.realpath(args.elf_file)
+    print(f"Target elf file: {elf_file_path}")
+    if not os.path.exists(elf_file_path):
+        print("Target elf file does not found!")
+        os.exit(1)
+    args.elf_file = elf_file_path
+    print("todo do_handle_vmlinux")
+
+
+def handle_builtin(args):
+    """
+    thin archive:
+    The version of ar in GNU binutils and Elfutils have an additional "thin archive" format with the magic number
+    !<thin>. A thin archive only contains a symbol table and references to the file. The file format is essentially a
+    System V format archive where every file is stored without the data sections. Every filename is stored as a
+    "long" filename and they are to be resolved as if they were symbolic links.[17]
+    :param args:
+    :return:
+    """
+    elf_file_path = os.path.realpath(args.elf_file)
+    print(f"Target elf file: {elf_file_path}")
+    if not os.path.exists(elf_file_path):
+        print("Target elf file does not found!")
+        os.exit(1)
+    args.elf_file = elf_file_path
+
+    # 使用 ar 命令列出归档中的成员
+    result = subprocess.run(['ar', '-tOv', elf_file_path], capture_output=True, text=True)
+    if result.returncode != 0:
+        print(f"Error listing archive members: {result.stderr}")
+        return
+
+    # 打印归档成员列表
+    print(f"Members of thin archive '{elf_file_path}':")
+    member_list = result.stdout.splitlines()
+    for member in member_list:
+        print(member)
+    print(f"Total number: {len(member_list)}")
+
+
 def main():
     global CURRENT_VERSION
     check_python_version()
@@ -388,6 +434,15 @@ def main():
     # 添加子命令 info
     parser_info = subparsers.add_parser('info', parents=[parent_parser], help="info elf file")
     parser_info.set_defaults(func=handle_info)
+
+    # 添加子命令 vmlinux
+    parser_vmlinux = subparsers.add_parser('vmlinux', parents=[parent_parser], help="linux kernel vmlinux parser")
+    parser_vmlinux.set_defaults(func=handle_vmlinux)
+
+    # 添加子命令 buitin
+    parser_builtin = subparsers.add_parser('builtin', parents=[parent_parser],
+                                           help="linux kernel built-in parser(thin archive)")
+    parser_builtin.set_defaults(func=handle_builtin)
 
     # 开始解析命令
     args = parser.parse_args()
