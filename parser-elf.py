@@ -1,7 +1,16 @@
 #!/usr/bin/python3
-
+import argparse
+import os
 import sys
 from elftools.elf.elffile import ELFFile
+
+
+def check_python_version():
+    current_python = sys.version_info[0]
+    if current_python == 3:
+        return
+    else:
+        raise Exception('Invalid python version requested: %d' % current_python)
 
 
 def hexdump(data, width=16):
@@ -319,10 +328,79 @@ def parse_elf(file_path):
     except Exception as e:
         print(f"An error occurred: {e}")
 
+def parse_all_sections_info(elf):
+    print(f"ELF all section:")
+    for section in elf.iter_sections():
+        print(f"-> parse name:{section.name} "
+              f"sh_name:{section['sh_name']} "
+              f"sh_type:{section['sh_type']}")
+    print('-' * 128)
+
+def do_handle_info(args):
+    try:
+        # 打开 ELF 文件
+        with open(args.elf_file, 'rb') as f:
+            elf = ELFFile(f)
+
+            # ELF Header
+            parse_elf_header(elf)
+
+            # ELF Program Header Table
+            parse_program_header_table(elf)
+
+            # ELF Sections
+            parse_all_sections_info(elf)
+
+            # ELF Section Header Table
+            parse_section_header_table(elf)
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+
+def handle_info(args):
+    elf_file_path = os.path.realpath(args.elf_file)
+    print(f"Target elf file: {elf_file_path}")
+    if not os.path.exists(elf_file_path):
+        print("Target elf file does not found!")
+        os.exit(1)
+    args.elf_file = elf_file_path
+    do_handle_info(args)
+
+
+def main():
+    global CURRENT_VERSION
+    check_python_version()
+
+    parser = argparse.ArgumentParser(add_help=False)
+    parser.add_argument("-v", "--version", action="store_true",
+                        help="show program's version number and exit")
+    parser.add_argument("-h", "--help", action="store_true",
+                        help="show this help message and exit")
+
+    subparsers = parser.add_subparsers()
+
+    # 定义base命令用于集成
+    parent_parser = argparse.ArgumentParser(add_help=False, description="sysup - a tool for kernel development")
+    parent_parser.add_argument("elf_file", help="Path to the ELF file to process.")
+    parent_parser.add_argument("-V", "--verbose", default=None, action="store_true", help="show verbose output")
+    parent_parser.add_argument('--debug', default=None, action="store_true", help="enable debug output")
+
+    # 添加子命令 info
+    parser_info = subparsers.add_parser('info', parents=[parent_parser], help="info elf file")
+    parser_info.set_defaults(func=handle_info)
+
+    # 开始解析命令
+    args = parser.parse_args()
+
+    if args.version:
+        print("parser-elf %s" % CURRENT_VERSION)
+        sys.exit(0)
+    elif args.help or len(sys.argv) < 2:
+        parser.print_help()
+        sys.exit(0)
+    else:
+        args.func(args)
+
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("Usage: python script.py <ELF file path>")
-    else:
-        elf_file_path = sys.argv[1]
-        parse_elf(elf_file_path)
+    main()
