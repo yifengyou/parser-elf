@@ -24,22 +24,18 @@ def hexdump(data, width=16):
     data -- 要打印的数据（字节串或字符串）
     width -- 每行显示的字节数，默认为 16
     """
-    # 如果数据是字符串，转换为字节串
     if isinstance(data, str):
         data = data.encode('utf-8')
 
-    # 计算需要打印的行数
     num_lines = (len(data) + width - 1) // width
 
     for i in range(num_lines):
         start = i * width
         end = min((i + 1) * width, len(data))
 
-        # 打印十六进制表示
         hex_part = ' '.join('{:02x}'.format(byte) for byte in data[start:end])
         print(f"{start:08x}: {hex_part:<{width * 3}}", end='')
 
-        # 打印 ASCII 表示
         ascii_part = ''.join(chr(byte) if 32 <= byte <= 126 else '.' for byte in data[start:end])
         print(f"{'':{width}} {ascii_part}")
 
@@ -77,19 +73,19 @@ def parse_elf_header(elf):
         if i[0].startswith('EI_'):
             print(f"{i[0].lower()}: {i[1]}")
     # 打印e_开头的信息
-    print(f"e_type: {elf.header['e_type']} # Type")
-    print(f"e_machine: {elf.header['e_machine']} # Machine architecture")
-    print(f"e_version: {elf.header['e_version']} # Version")
-    print(f"e_entry: {hex(elf.header['e_entry'])} # Entry point address")
-    print(f"e_phoff: {elf.header['e_phoff']}({hex(elf.header['e_phoff'])})(bytes into file) # Start of program headers")
-    print(f"e_shoff: {elf.header['e_shoff']}({hex(elf.header['e_shoff'])})(bytes into file) # Start of section headers")
-    print(f"e_flags: {elf.header['e_flags']} # Flags")
-    print(f"e_ehsize: {elf.header['e_ehsize']} (bytes) # Size of this header")
-    print(f"e_phentsize: {elf.header['e_phentsize']} (bytes) # Size of program headers")
-    print(f"e_phnum: {elf.header['e_phnum']} # Number of program headers")
-    print(f"e_shentsize: {elf.header['e_shentsize']} (bytes) # Size of section headers")
-    print(f"e_shnum: {elf.header['e_shnum']} # Number of section headers")
-    print(f"e_shstrndx: {elf.header['e_shstrndx']} # Section header string table index")
+    print(f"e_type:{elf.header['e_type']} # Type")
+    print(f"e_machine:{elf.header['e_machine']} # Machine architecture")
+    print(f"e_version:{elf.header['e_version']} # Version")
+    print(f"e_entry:{hex(elf.header['e_entry'])} # Entry point address")
+    print(f"e_phoff:{elf.header['e_phoff']}({hex(elf.header['e_phoff'])})(bytes into file) # Start of program headers")
+    print(f"e_shoff:{elf.header['e_shoff']}({hex(elf.header['e_shoff'])})(bytes into file) # Start of section headers")
+    print(f"e_flags:{elf.header['e_flags']} # Flags")
+    print(f"e_ehsize:{elf.header['e_ehsize']} (bytes) # Size of this header")
+    print(f"e_phentsize:{elf.header['e_phentsize']} (bytes) # Size of program headers")
+    print(f"e_phnum:{elf.header['e_phnum']} # Number of program headers")
+    print(f"e_shentsize:{elf.header['e_shentsize']} (bytes) # Size of section headers")
+    print(f"e_shnum:{elf.header['e_shnum']} # Number of section headers")
+    print(f"e_shstrndx:{elf.header['e_shstrndx']} # Section header string table index")
     print('-' * 128)
 
 
@@ -132,14 +128,14 @@ def parse_program_header_table(elf):
     #     return
 
     for segment in elf.iter_segments():
-        print(f"p_type: {segment['p_type']} "
-              f"p_offset: {segment['p_offset']}  "
-              f"p_vaddr: {segment['p_vaddr']} "
-              f"p_paddr: {segment['p_paddr']}  "
-              f"p_filesz: {segment['p_filesz']} "
-              f"p_memsz: {segment['p_memsz']} "
-              f"p_flags: {segment['p_flags']} "
-              f"p_align: {segment['p_align']}")
+        print(f"p_type:{segment['p_type']:<9} "
+              f"p_offset:{segment['p_offset']:<9} "
+              f"p_vaddr:0X{segment['p_vaddr']:016X} "
+              f"p_paddr:0X{segment['p_paddr']:016X} "
+              f"p_filesz:{segment['p_filesz']:<9} "
+              f"p_memsz:{segment['p_memsz']:<9} "
+              f"p_flags:{segment['p_flags']:<3} "
+              f"p_align:0X{segment['p_align']:016X}")
 
     print('-' * 128)
 
@@ -295,15 +291,15 @@ def parse_section_header_table(elf):
     print(f"ELF section header table:")
     # 遍历section header table
     for section in elf.iter_sections():
-        print(f"sh_name:{section['sh_name']} "
-              f"sh_type:{section['sh_type']} "
-              f"sh_flags:{section['sh_flags']} "
-              f"sh_addr:{section['sh_addr']} "
-              f"sh_offset:{section['sh_offset']} "
-              f"sh_size:{section['sh_size']} "
-              f"sh_link:{section['sh_link']} "
-              f"sh_info:{section['sh_info']} "
-              f"sh_addralign:{section['sh_addralign']} "
+        print(f"sh_name:{'%s(%s)' % (section.name, section['sh_name']):33}"
+              f"sh_size:{'%d(%.3fMB)' % (section['sh_size'], section['sh_size'] / 1024 / 1024):23}"
+              f"sh_type:{section['sh_type']:13} "
+              f"sh_flags:{section['sh_flags']:<3} "
+              f"sh_addr:0X{section['sh_addr']:016X} "
+              f"sh_offset:0X{section['sh_offset']:016X} "
+              f"sh_link:{section['sh_link']:<3} "
+              f"sh_info:{section['sh_info']:<6} "
+              f"sh_addralign:{section['sh_addralign']:<5} "
               f"sh_entsize:{section['sh_entsize']}")
     print('-' * 128)
 
@@ -335,8 +331,8 @@ def parse_elf(file_path):
 def parse_all_sections_info(elf):
     print(f"ELF all section:")
     for section in elf.iter_sections():
-        print(f"-> parse name:{section.name} "
-              f"sh_name:{section['sh_name']} "
+        print(f"-> parse name:{section.name:<25} "
+              f"sh_name:{section['sh_name']:<6} "
               f"sh_type:{section['sh_type']}")
     print('-' * 128)
 
@@ -370,6 +366,56 @@ def handle_info(args):
         os.exit(1)
     args.elf_file = elf_file_path
     do_handle_info(args)
+
+
+def do_handle_symbol(args):
+    try:
+        with open(args.elf_file, 'rb') as f:
+            elf = ELFFile(f)
+            for section in elf.iter_sections():
+                if section['sh_type'] == 'SHT_SYMTAB':
+                    print(f"-> parse name:{section.name:<25} "
+                          f"sh_name:{section['sh_name']:<6} "
+                          f"sh_type:{section['sh_type']}")
+                    parse_typeof_symtab(section)
+    except Exception as e:
+        print(f"An error occurred: {e}")
+    print('-' * 128)
+
+
+def handle_symbol(args):
+    elf_file_path = os.path.realpath(args.elf_file)
+    print(f"Target elf file: {elf_file_path}")
+    if not os.path.exists(elf_file_path):
+        print("Target elf file does not found!")
+        os.exit(1)
+    args.elf_file = elf_file_path
+    do_handle_symbol(args)
+
+
+def do_handle_strtable(args):
+    try:
+        with open(args.elf_file, 'rb') as f:
+            elf = ELFFile(f)
+            for section in elf.iter_sections():
+                if section['sh_type'] == 'SHT_STRTAB':
+                    print(f"-> parse name:{section.name:<25} "
+                          f"sh_name:{section['sh_name']:<6} "
+                          f"sh_type:{section['sh_type']}")
+                    parse_typeof_strtab(section)
+    except Exception as e:
+        print(f"An error occurred: {e}")
+    print('-' * 128)
+
+
+def handle_strtable(args):
+    elf_file_path = os.path.realpath(args.elf_file)
+    print(f"Target elf file: {elf_file_path}")
+    if not os.path.exists(elf_file_path):
+        print("Target elf file does not found!")
+        os.exit(1)
+    args.elf_file = elf_file_path
+    do_handle_strtable(args)
 
 
 def handle_vmlinux(args):
@@ -434,6 +480,14 @@ def main():
     # 添加子命令 info
     parser_info = subparsers.add_parser('info', parents=[parent_parser], help="info elf file")
     parser_info.set_defaults(func=handle_info)
+
+    # 添加子命令 symbol
+    parser_symbol = subparsers.add_parser('symbol', parents=[parent_parser], help="symbol elf file")
+    parser_symbol.set_defaults(func=handle_symbol)
+
+    # 添加子命令 strtable
+    parser_strtable = subparsers.add_parser('strtable', parents=[parent_parser], help="strtable elf file")
+    parser_strtable.set_defaults(func=handle_strtable)
 
     # 添加子命令 vmlinux
     parser_vmlinux = subparsers.add_parser('vmlinux', parents=[parent_parser], help="linux kernel vmlinux parser")
