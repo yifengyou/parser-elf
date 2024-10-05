@@ -214,11 +214,11 @@ def parse_typeof_rela(section):
     print(f"section offset:{section_offset}[{hex(section_offset)}] size:{section_size}[{hex(section_size)}] "
           f"entry number {sum(1 for _ in section.iter_relocations())}")
     for rela in section.iter_relocations():
-        print(f"r_offset: {hex(rela['r_offset'])} "
-              f"r_info: {hex(rela['r_info'])} "
-              f"r_addend: {hex(rela['r_addend'])} "
-              f"r_info_sym: {hex(rela.entry['r_info_sym'])} "
-              f"r_info_type: {hex(rela.entry['r_info_type'])} ")
+        print(f"r_offset: 0x{rela['r_offset']:016X} "
+              f"r_info: 0x{rela['r_info']:016X} "
+              f"r_addend: 0x{rela['r_addend']:016X} "
+              f"r_info_sym: 0x{rela.entry['r_info_sym']:016X} "
+              f"r_info_type: 0x{rela.entry['r_info_type']:08X} ")
         # 获取符号名称（如果存在）
         # if rela.entry['r_info_sym'] is not None:
         #     symbol = section.get_symbol(rela.entry['r_info_sym'])
@@ -418,6 +418,31 @@ def handle_strtable(args):
     do_handle_strtable(args)
 
 
+def do_handle_reltable(args):
+    try:
+        with open(args.elf_file, 'rb') as f:
+            elf = ELFFile(f)
+            for section in elf.iter_sections():
+                if section['sh_type'] == 'SHT_RELA':
+                    print(f"-> parse name:{section.name:<25} "
+                          f"sh_name:{section['sh_name']:<6} "
+                          f"sh_type:{section['sh_type']}")
+                    parse_typeof_rela(section)
+    except Exception as e:
+        print(f"An error occurred: {e}")
+    print('-' * 128)
+
+
+def handle_reltable(args):
+    elf_file_path = os.path.realpath(args.elf_file)
+    print(f"Target elf file: {elf_file_path}")
+    if not os.path.exists(elf_file_path):
+        print("Target elf file does not found!")
+        os.exit(1)
+    args.elf_file = elf_file_path
+    do_handle_reltable(args)
+
+
 def handle_vmlinux(args):
     elf_file_path = os.path.realpath(args.elf_file)
     print(f"Target elf file: {elf_file_path}")
@@ -488,6 +513,10 @@ def main():
     # 添加子命令 strtable
     parser_strtable = subparsers.add_parser('strtable', parents=[parent_parser], help="strtable elf file")
     parser_strtable.set_defaults(func=handle_strtable)
+
+    # 添加子命令 reltable
+    parser_reltable = subparsers.add_parser('reltable', parents=[parent_parser], help="reltable elf file")
+    parser_reltable.set_defaults(func=handle_reltable)
 
     # 添加子命令 vmlinux
     parser_vmlinux = subparsers.add_parser('vmlinux', parents=[parent_parser], help="linux kernel vmlinux parser")
